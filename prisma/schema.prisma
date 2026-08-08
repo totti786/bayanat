@@ -48,6 +48,7 @@ model User {
   createdAt    DateTime     @default(now())
   orgId        String?
   org          Organization? @relation(fields: [orgId], references: [id])
+  passwordResets PasswordReset[]
 }
 
 model Organization {
@@ -164,6 +165,16 @@ model Invite {
   createdAt DateTime @default(now())
   expiresAt DateTime
   accepted  Boolean  @default(false)
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  used      Boolean  @default(false)
 }
 
 model RecurringRule {

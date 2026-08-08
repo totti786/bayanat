@@ -53,3 +53,6 @@ generated/
 .windsurf/
 .agents/
 skills-lock.json
+
+# backups
+/backups/

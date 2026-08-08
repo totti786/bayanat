@@ -127,8 +127,12 @@ lib/
 ## ☁️ Deployment notes
 
 - **Not serverless-friendly.** PDF generation launches Chromium, so run this on a small Node service (or a dedicated PDF worker) and point `APP_ORIGIN` at the public origin.
-- Add a cron job for the recurring generator: `curl -fsS "https://your-domain/api/cron/recurring?key=$CRON_KEY"` daily.
+- Add two cron jobs:
+  - Recurring generator: `curl -fsS "https://your-domain/api/cron/recurring?key=$CRON_KEY"` daily
+  - Backups: `node scripts/backup.mjs --keep 14` nightly (retains DB + uploaded logos)
 - Set a strong `SESSION_SECRET` and `CRON_KEY`. For multi-instance deploys, also set `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`.
+- Configure `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` to enable emailing invoices, invites, and password resets.
+- Login and signup are rate-limited in-memory (fine for a single instance; swap for a shared store if you scale).
 - SQLite is for local dev; swap the Prisma `datasource` to Postgres and re-migrate for a production-grade multi-tenant setup.
 
 ---

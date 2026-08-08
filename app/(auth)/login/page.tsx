@@ -9,10 +9,15 @@ import LangToggle from "@/components/LangToggle";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ reset?: string }>;
+}) {
   const user = await getSessionUser();
   if (user) redirect("/");
   const lang = await getUiLang();
+  const { reset } = await searchParams;
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--background)] px-4">
@@ -29,6 +34,11 @@ export default async function LoginPage() {
           </div>
           <p className="mt-2 text-sm text-neutral-500">{u("signInTo", lang)}</p>
         </div>
+        {reset === "1" && (
+          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {lang === "ar" ? "تم تحديث كلمة المرور. سجّل الدخول." : "Password updated. Sign in with your new password."}
+          </div>
+        )}
         <Card className="p-6">
           <LoginForm lang={lang} />
         </Card>

@@ -18,7 +18,15 @@ export default function LoginForm({ lang }: { lang: UiLang }) {
       </div>
       <div>
         <Label htmlFor="password">{u("password", lang)}</Label>
-        <Input id="password" name="password" type="password" placeholder="••••••••" required />
+        <div className="flex items-center justify-between gap-2">
+          <Input id="password" name="password" type="password" placeholder="••••••••" required />
+          <Link
+            href="/forgot-password"
+            className="shrink-0 text-xs font-medium text-neutral-500 hover:text-neutral-900 hover:underline"
+          >
+            {lang === "ar" ? "نسيت كلمة المرور؟" : "Forgot?"}
+          </Link>
+        </div>
       </div>
       <Button type="submit" disabled={pending} className="w-full">
         {pending ? u("signingIn", lang) : u("signIn", lang)}
