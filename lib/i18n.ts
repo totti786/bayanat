@@ -5,6 +5,7 @@ type Dict = Record<string, { en: string; ar: string }>;
 const dict: Dict = {
   invoice: { en: "INVOICE", ar: "فاتورة" },
   quote: { en: "QUOTE", ar: "عرض سعر" },
+  creditNote: { en: "CREDIT NOTE", ar: "إشعار دائن" },
   expiryDate: { en: "Valid Until", ar: "صالح حتى" },
   proforma: { en: "PROFORMA", ar: "فاتورة أولية" },
   billTo: { en: "Bill To", ar: "فاتورة إلى" },

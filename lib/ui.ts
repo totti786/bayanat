@@ -9,6 +9,8 @@ const dict: Record<string, Entry> = {
   dashboard: { en: "Dashboard", ar: "لوحة التحكم" },
   invoices: { en: "Invoices", ar: "الفواتير" },
   recurring: { en: "Recurring", ar: "المتكرر" },
+  catalog: { en: "Catalog", ar: "المنتجات" },
+  reports: { en: "Reports", ar: "التقارير" },
   clients: { en: "Clients", ar: "العملاء" },
   settings: { en: "Settings", ar: "الإعدادات" },
   signOut: { en: "Sign out", ar: "تسجيل الخروج" },

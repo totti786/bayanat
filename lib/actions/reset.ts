@@ -82,7 +82,7 @@ export async function resetPassword(
     prisma.passwordReset.update({ where: { id: reset.id }, data: { used: true } }),
     prisma.user.update({
       where: { id: reset.userId },
-      data: { passwordHash: hashPassword(password) },
+      data: { passwordHash: hashPassword(password), sessionVersion: { increment: 1 } },
     }),
   ]);
 

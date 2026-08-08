@@ -17,6 +17,7 @@ import PaymentsList from "@/components/PaymentsList";
 import ShareInvoice from "@/components/ShareInvoice";
 import ConvertQuoteButton from "@/components/ConvertQuoteButton";
 import RecurringDialog from "@/components/RecurringDialog";
+import CreditNoteDialog from "@/components/CreditNoteDialog";
 import SignPdfPanel from "@/components/SignPdfPanel";
 import { certCommonName } from "@/lib/pdfsign";
 
@@ -89,10 +90,18 @@ export default async function InvoiceDetailPage({
           </ButtonLink>
           {isQuote ? (
             <ConvertQuoteButton invoiceId={invoice.id} toKind="invoice" lang={uiLang} />
-          ) : (
+          ) : invoice.kind === "credit_note" ? null : (
             <>
               <ConvertQuoteButton invoiceId={invoice.id} toKind="quote" lang={uiLang} />
               <RecurringDialog invoiceId={invoice.id} lang={uiLang} />
+              {totals.paid > 0 && (
+                <CreditNoteDialog
+                  invoiceId={invoice.id}
+                  paidMinor={totals.paid}
+                  currency={invoice.currency}
+                  lang={uiLang}
+                />
+              )}
             </>
           )}
         </div>

@@ -28,6 +28,13 @@
 - **Configurable tax** — name, rate, and inclusive *or* exclusive, per organization, per invoice, even per line item. VAT IDs print on the document.
 - **VAT e-invoicing QR** — a GCC/ZATCA-compatible QR code (TLV base64) is embedded on every invoice that has a VAT ID.
 
+- **Credit notes** — issue a credit against any paid invoice; it creates a numbered credit-note document and reduces the invoice balance.
+- **Product catalog** — save reusable line items with prices and add them to invoices in one click.
+- **Reports & exports** — VAT summary by rate/period, plus invoices/payments/clients/statement CSV exports.
+- **Notifications** — in-app bell for invoice sent, payment received, signed, invites, and recurring generation.
+- **Audit log** — a record of who changed what (admin view).
+- **Multiple companies** — one account, switch between companies and create new ones.
+
 ### Workflow & collaboration
 - **Shareable links & email delivery** — one click generates a signed 90-day link; with SMTP configured, the PDF is emailed to the client with the link. Clients can view/download without an account.
 - **Recurring invoices** — repeat any sent invoice (weekly/monthly/quarterly/yearly); a cron endpoint generates due invoices automatically with gap-free numbers.
@@ -133,6 +140,7 @@ lib/
 - Set a strong `SESSION_SECRET` and `CRON_KEY`. For multi-instance deploys, also set `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`.
 - Configure `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` to enable emailing invoices, invites, and password resets.
 - Login and signup are rate-limited in-memory (fine for a single instance; swap for a shared store if you scale).
+- Password changes and resets revoke all previous sessions; security headers (CSP, HSTS, X-Frame-Options) are applied; a `/api/health` endpoint is available; set `SENTRY_DSN` to enable error reporting.
 - SQLite is for local dev; swap the Prisma `datasource` to Postgres and re-migrate for a production-grade multi-tenant setup.
 
 ---

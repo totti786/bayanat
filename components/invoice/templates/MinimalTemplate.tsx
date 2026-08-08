@@ -10,6 +10,7 @@ export default function MinimalTemplate(data: InvoiceDocumentData) {
   const badge = STATUS_BADGE[status];
   const taxLabel = invoice.taxName || (invoice.taxRate ? tr("tax", lang) : "");
   const isQuote = data.kind === "quote";
+  const isCredit = data.kind === "credit_note";
   const secondaryDate = isQuote ? invoice.expiryDate : invoice.dueDate;
   const secondaryLabel = isQuote ? "expiryDate" : "dueDate";
 
@@ -30,7 +31,7 @@ export default function MinimalTemplate(data: InvoiceDocumentData) {
         </div>
         <div className="text-end">
           <p className="text-[10px] font-semibold tracking-[0.22em] text-neutral-400 uppercase">
-            {tr(isQuote ? "quote" : "invoice", lang)}
+            {tr(isCredit ? "creditNote" : isQuote ? "quote" : "invoice", lang)}
           </p>
           <p className="mt-1 text-lg font-light text-brand-950">{invoice.number ?? "—"}</p>
           <p className="mt-2 text-[10px] tracking-[0.18em] text-neutral-400 uppercase">

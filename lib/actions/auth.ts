@@ -68,7 +68,7 @@ export async function signup(
     },
   });
 
-  await createSession(user.id);
+  await createSession(user.id, user.sessionVersion);
   redirect("/");
 }
 
@@ -102,7 +102,7 @@ export async function login(
 
   resetRateLimit(`login:${ipAddr}:${email}`);
   resetRateLimit(`login:${ipAddr}`);
-  await createSession(user.id);
+  await createSession(user.id, user.sessionVersion);
   redirect("/");
 }
 

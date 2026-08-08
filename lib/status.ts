@@ -17,8 +17,8 @@ export function effectiveStatus(
   if (invoice.status === "cancelled") return "cancelled";
   if (invoice.status === "paid") return "paid";
 
-  // Quotes don't age into overdue or accrue payments.
-  if (invoice.kind === "quote") return "sent";
+  // Quotes and credit notes don't age into overdue or accrue payments.
+  if (invoice.kind === "quote" || invoice.kind === "credit_note") return "sent";
 
   const due = invoice.dueDate ? new Date(invoice.dueDate) : null;
   const today = new Date();

@@ -11,6 +11,8 @@ import { createShareToken } from "@/lib/share";
 import { renderPdf, appUrl } from "@/lib/pdf";
 import { emailConfigured, sendMail } from "@/lib/mail";
 import { tr } from "@/lib/i18n";
+import { notify } from "@/lib/notify";
+import { audit } from "@/lib/audit";
 
 export type ShareResult = { shareUrl: string; emailed: boolean };
 
@@ -120,7 +122,7 @@ export async function createInvoice(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { org } = await requireOrg();
+  const { org, id: uid, email: uemail } = await requireOrg();
 
   const parsed = parseInvoiceForm(formData);
   if (!parsed.success) {
@@ -171,6 +173,13 @@ export async function createInvoice(
     await finalizeInvoiceNumber(invoice.id, org.id);
   }
 
+  await audit(org.id, { id: uid, email: uemail }, {
+    action: "invoice.created",
+    entity: "invoice",
+    entityId: invoice.id,
+    detail: `Number ${invoice.number ?? "draft"}, total ${d.currency}`,
+  });
+
   revalidatePath("/invoices");
   redirect(`/invoices/${invoice.id}`);
 }
@@ -180,7 +189,7 @@ export async function updateInvoice(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { org } = await requireOrg();
+  const { org, id: uid, email: uemail } = await requireOrg();
 
   const existing = await prisma.invoice.findFirst({
     where: { id: invoiceId, orgId: org.id },
@@ -241,6 +250,12 @@ export async function updateInvoice(
     await finalizeInvoiceNumber(invoice.id, org.id);
   }
 
+  await audit(org.id, { id: uid, email: uemail }, {
+    action: "invoice.updated",
+    entity: "invoice",
+    entityId: invoiceId,
+  });
+
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath("/invoices");
   redirect(`/invoices/${invoiceId}`);
@@ -271,7 +286,7 @@ async function finalizeInvoiceNumber(invoiceId: string, orgId: string) {
 }
 
 export async function finalizeInvoice(invoiceId: string): Promise<void> {
-  const { org } = await requireOrg();
+  const { org, id: uid, email: uemail } = await requireOrg();
   const invoice = await prisma.invoice.findFirst({
     where: { id: invoiceId, orgId: org.id },
   });
@@ -279,6 +294,19 @@ export async function finalizeInvoice(invoiceId: string): Promise<void> {
   if (invoice.status !== "draft") throw new Error("Only drafts can be sent");
 
   await finalizeInvoiceNumber(invoiceId, org.id);
+  const sent = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+  await notify(org.id, {
+    type: "invoice_sent",
+    title: `Invoice ${sent?.number ?? ""} sent`,
+    titleAr: `تم إرسال الفاتورة ${sent?.number ?? ""}`,
+    invoiceId,
+  });
+  await audit(org.id, { id: uid, email: uemail }, {
+    action: "invoice.sent",
+    entity: "invoice",
+    entityId: invoiceId,
+    detail: sent?.number ?? undefined,
+  });
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath("/invoices");
 }
@@ -316,6 +344,91 @@ export async function cancelInvoice(invoiceId: string): Promise<void> {
   revalidatePath(`/invoices/${invoiceId}`);
 }
 
+export type CreditNoteState = { error?: string; success?: boolean } | null;
+
+export async function issueCreditNote(
+  invoiceId: string,
+  _prev: CreditNoteState,
+  formData: FormData
+): Promise<CreditNoteState> {
+  const { org } = await requireOrg();
+
+  const invoice = await prisma.invoice.findFirst({
+    where: { id: invoiceId, orgId: org.id },
+    include: { items: true, payments: true },
+  });
+  if (!invoice) return { error: "Invoice not found" };
+  if (invoice.kind !== "invoice" || invoice.status === "draft" || invoice.status === "cancelled") {
+    return { error: "Only sent invoices can be credited" };
+  }
+
+  const totals = withPayments(computeTotals(invoice, invoice.items), invoice.payments);
+  if (totals.paid <= 0) return { error: "This invoice has no payments to credit" };
+
+  const amount = toMinor(Number(formData.get("amount") ?? 0), invoice.currency);
+  if (amount <= 0) return { error: "Enter a positive credit amount" };
+  if (amount > totals.paid) return { error: "Credit cannot exceed the amount paid" };
+
+  const ref = invoice.number ?? "invoice";
+
+  const creditNote = await prisma.$transaction(async (tx) => {
+    const orgRow = await tx.organization.findUnique({ where: { id: org.id } });
+    if (!orgRow) throw new Error("Organization not found");
+    const seq = orgRow.nextNumber;
+    const number = `${orgRow.prefix}-${String(seq).padStart(4, "0")}`;
+    await tx.organization.update({ where: { id: org.id }, data: { nextNumber: seq + 1 } });
+
+    return tx.invoice.create({
+      data: {
+        orgId: org.id,
+        clientId: invoice.clientId,
+        kind: "credit_note",
+        number,
+        seq,
+        lang: invoice.lang,
+        currency: invoice.currency,
+        issueDate: new Date(),
+        status: "sent",
+        template: invoice.template,
+        taxInclusive: false,
+        notes: `Credit note for ${ref}`,
+        notesAr: `إشعار دائن للفاتورة ${ref}`,
+        items: {
+          create: [
+            {
+              description: `Credit note for ${ref}`,
+              descriptionAr: `إشعار دائن للفاتورة ${ref}`,
+              quantity: 1,
+              unitPrice: -amount,
+              taxRate: 0,
+            },
+          ],
+        },
+      },
+    });
+  });
+
+  // Apply the credit against the original invoice, reducing what the client owes.
+  await prisma.payment.create({
+    data: {
+      invoiceId,
+      amount,
+      method: "Credit note",
+      date: new Date(),
+      reference: creditNote.number ?? undefined,
+    },
+  });
+
+  const newPaid = totals.paid + amount;
+  if (newPaid >= totals.total) {
+    await prisma.invoice.update({ where: { id: invoiceId }, data: { status: "paid" } });
+  }
+
+  revalidatePath(`/invoices/${invoiceId}`);
+  revalidatePath("/invoices");
+  return { success: true };
+}
+
 export async function convertQuote(invoiceId: string, toKind: "invoice" | "quote"): Promise<void> {
   const { org } = await requireOrg();
   const invoice = await prisma.invoice.findFirst({
@@ -337,7 +450,7 @@ export async function recordPayment(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { org } = await requireOrg();
+  const { org, id: uid, email: uemail } = await requireOrg();
 
   const invoice = await prisma.invoice.findFirst({
     where: { id: invoiceId, orgId: org.id },
@@ -384,6 +497,19 @@ export async function recordPayment(
       data: { status: "paid" },
     });
   }
+
+  await notify(org.id, {
+    type: "payment_received",
+    title: `Payment received on ${invoice.number ?? ""}`,
+    titleAr: `تم استلام دفعة على الفاتورة ${invoice.number ?? ""}`,
+    invoiceId,
+  });
+  await audit(org.id, { id: uid, email: uemail }, {
+    action: "payment.created",
+    entity: "invoice",
+    entityId: invoiceId,
+    detail: `${amount} ${invoice.currency}`,
+  });
 
   revalidatePath(`/invoices/${invoiceId}`);
   revalidatePath("/invoices");

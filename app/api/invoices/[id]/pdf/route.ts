@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSessionUser } from "@/lib/auth";
 import { getInvoiceForRender } from "@/lib/data";
-import { renderPdf, appUrl } from "@/lib/pdf";
+import { renderPdf, appUrl, PdfBusyError } from "@/lib/pdf";
+import { reportError } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,10 +40,19 @@ export async function GET(
   const store = await cookies();
   const sessionCookie = store.get("session")?.value;
 
-  const pdf = await renderPdf({
-    url: appUrl(`/invoices/${id}/pdf?format=pdf`),
-    sessionCookie,
-  });
+  let pdf: Buffer;
+  try {
+    pdf = await renderPdf({
+      url: appUrl(`/invoices/${id}/pdf?format=pdf`),
+      sessionCookie,
+    });
+  } catch (e) {
+    if (e instanceof PdfBusyError) {
+      return NextResponse.json({ error: e.message }, { status: 429 });
+    }
+    reportError("pdf:authed", e, { invoiceId: id });
+    return NextResponse.json({ error: "Could not generate the PDF" }, { status: 500 });
+  }
 
   const filename = `${(data.invoice.number ?? "draft").replace(/[^a-zA-Z0-9-]+/g, "_")}.pdf`;
   return new NextResponse(new Uint8Array(pdf), {

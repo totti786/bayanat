@@ -30,6 +30,7 @@ enum InvoiceTemplate {
 enum InvoiceKind {
   invoice
   quote
+  credit_note
 }
 
 enum RecurrenceFrequency {
@@ -45,10 +46,12 @@ model User {
   passwordHash String
   name         String
   role         UserRole     @default(accountant)
+  sessionVersion Int        @default(0)
   createdAt    DateTime     @default(now())
   orgId        String?
   org          Organization? @relation(fields: [orgId], references: [id])
   passwordResets PasswordReset[]
+  memberships   Membership[]
 }
 
 model Organization {
@@ -81,6 +84,10 @@ model Organization {
   invoices        Invoice[]
   invites         Invite[]
   recurring       RecurringRule[]
+  products        Product[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  memberships     Membership[]
 }
 
 model Client {
@@ -165,6 +172,56 @@ model Invite {
   createdAt DateTime @default(now())
   expiresAt DateTime
   accepted  Boolean  @default(false)
+}
+
+model Membership {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id])
+  role      UserRole     @default(accountant)
+  createdAt DateTime     @default(now())
+
+  @@unique([userId, orgId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id])
+  userId    String?
+  userEmail String?
+  action    String
+  entity    String
+  entityId  String?
+  detail    String?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id])
+  type      String
+  title     String
+  titleAr   String?
+  invoiceId String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id          String       @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  name        String
+  nameAr      String?
+  description String?
+  unitPrice   Int
+  taxRate     Float?
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
 }
 
 model PasswordReset {

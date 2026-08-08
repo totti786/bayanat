@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireOrg } from "@/lib/auth";
 import { clientSchema } from "@/lib/validators";
+import { audit } from "@/lib/audit";
 
 export type ActionState = { error?: string; success?: boolean } | null;
 
@@ -12,7 +13,7 @@ export async function createClient(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { org } = await requireOrg();
+  const { org, id, email } = await requireOrg();
 
   const parsed = clientSchema.safeParse({
     name: formData.get("name"),
@@ -48,6 +49,7 @@ export async function createClient(
     },
   });
 
+  await audit(org.id, { id, email }, { action: "client.created", entity: "client", entityId: client.id, detail: client.name });
   revalidatePath("/clients");
   redirect(`/clients/${client.id}`);
 }
@@ -57,7 +59,7 @@ export async function updateClient(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const { org } = await requireOrg();
+  const { org, id, email } = await requireOrg();
 
   const existing = await prisma.client.findFirst({
     where: { id: clientId, orgId: org.id },
@@ -98,13 +100,14 @@ export async function updateClient(
     },
   });
 
+  await audit(org.id, { id, email }, { action: "client.updated", entity: "client", entityId: clientId, detail: data.name });
   revalidatePath(`/clients/${clientId}`);
   revalidatePath("/clients");
   redirect(`/clients/${clientId}`);
 }
 
 export async function deleteClient(clientId: string): Promise<void> {
-  const { org } = await requireOrg();
+  const { org, id, email } = await requireOrg();
 
   const count = await prisma.invoice.count({
     where: { orgId: org.id, clientId },
@@ -114,6 +117,7 @@ export async function deleteClient(clientId: string): Promise<void> {
   }
 
   await prisma.client.deleteMany({ where: { id: clientId, orgId: org.id } });
+  await audit(org.id, { id, email }, { action: "client.deleted", entity: "client", entityId: clientId });
   revalidatePath("/clients");
   redirect("/clients");
 }

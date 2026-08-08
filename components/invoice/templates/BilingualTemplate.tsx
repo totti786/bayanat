@@ -13,6 +13,7 @@ export default function BilingualTemplate(data: InvoiceDocumentData) {
   const currency = invoice.currency;
   const badge = STATUS_BADGE[status];
   const isQuote = data.kind === "quote";
+  const isCredit = data.kind === "credit_note";
   const secondaryDate = isQuote ? invoice.expiryDate : invoice.dueDate;
 
   const label = (key: string) => (
@@ -58,10 +59,10 @@ export default function BilingualTemplate(data: InvoiceDocumentData) {
 
         <div className="text-end">
           <h1 className="text-[30px] font-extrabold leading-none tracking-tight text-brand-950">
-            {tr(isQuote ? "quote" : "invoice", "en")}
+            {tr(isCredit ? "creditNote" : isQuote ? "quote" : "invoice", "en")}
           </h1>
           <p className="mt-1 text-xl font-bold text-neutral-600" dir="rtl">
-            {tr(isQuote ? "quote" : "invoice", "ar")}
+            {tr(isCredit ? "creditNote" : isQuote ? "quote" : "invoice", "ar")}
           </p>
           <div className="mt-3 space-y-1 text-[11px] text-neutral-600">
             <p>

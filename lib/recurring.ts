@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { notify } from "@/lib/notify";
 import type { RecurrenceFrequency } from "@/generated/prisma/client";
 
 export function nextRunDate(
@@ -76,7 +77,7 @@ export async function generateDueInvoices(now = new Date()): Promise<number> {
       const due = new Date(now);
       due.setDate(due.getDate() + rule.client.paymentTerms);
 
-      await tx.invoice.create({
+      const created = await tx.invoice.create({
         data: {
           orgId: rule.orgId,
           clientId: rule.clientId,
@@ -114,6 +115,13 @@ export async function generateDueInvoices(now = new Date()): Promise<number> {
           lastRunAt: now,
           nextRun: nextRunDate(rule.frequency, rule.interval, rule.dayOfMonth, now),
         },
+      });
+
+      await notify(rule.orgId, {
+        type: "recurring_generated",
+        title: `Recurring invoice ${number} generated`,
+        titleAr: `تم إنشاء الفاتورة المتكررة ${number}`,
+        invoiceId: created.id,
       });
     });
     generated += 1;

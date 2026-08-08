@@ -30,6 +30,7 @@ interface InvoiceFormProps {
     language: string;
     paymentTerms: number;
   }[];
+  products?: { id: string; name: string; nameAr: string | null; unitPrice: number; taxRate: number | null }[];
   defaultClientId?: string;
   org: {
     defaultCurrency: string;
@@ -98,7 +99,7 @@ function todayInput(): string {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
 }
 
-export default function InvoiceForm({ clients, org, invoice, defaultClientId, uiLang }: InvoiceFormProps & { uiLang: UiLang }) {
+export default function InvoiceForm({ clients, org, invoice, defaultClientId, uiLang, products = [] }: InvoiceFormProps & { uiLang: UiLang }) {
   const action = invoice ? updateInvoice.bind(null, invoice.id) : createInvoice;
   const [state, formAction, pending] = useActionState(action, null);
 
@@ -130,6 +131,23 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
   );
 
   const ar = lang === "ar";
+  const [catalogId, setCatalogId] = useState("");
+
+  function addFromCatalog() {
+    const prod = products.find((p) => p.id === catalogId);
+    if (!prod) return;
+    setItems((prev) => [
+      ...prev,
+      {
+        description: prod.name,
+        descriptionAr: prod.nameAr ?? "",
+        quantity: "1",
+        unitPrice: String(prod.unitPrice),
+        taxRate: prod.taxRate != null ? String(prod.taxRate) : "",
+      },
+    ]);
+    setCatalogId("");
+  }
 
   function toDateInput(d: Date): string {
     const off = d.getTimezoneOffset();
@@ -350,6 +368,19 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
 
       <div className="rounded-xl border border-neutral-200 bg-white p-6">
         <h2 className="mb-4 text-sm font-semibold text-neutral-900">{u("lineItems", uiLang)}</h2>
+        {products.length > 0 && (
+          <div className="mb-4 flex items-center gap-2">
+            <Select value={catalogId} onChange={(e) => setCatalogId(e.target.value)} className="max-w-xs">
+              <option value="">{uiLang === "ar" ? "أضف من المنتجات…" : "Add from catalog…"}</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </Select>
+            <Button type="button" variant="secondary" onClick={addFromCatalog} disabled={!catalogId}>
+              {u("add", uiLang)}
+            </Button>
+          </div>
+        )}
         <div className="space-y-3">
           {items.map((item, i) => (
             <div key={i} className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">

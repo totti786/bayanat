@@ -41,41 +41,71 @@ export interface PdfOptions {
   sessionCookie?: string;
 }
 
-export async function renderPdf({ url, sessionCookie }: PdfOptions): Promise<Buffer> {
-  const browser = await acquire();
-  try {
-    const context = await browser.newContext();
-
-    if (sessionCookie) {
-      const host = new URL(url).host;
-      await context.addCookies([
-        {
-          name: "session",
-          value: sessionCookie,
-          domain: host,
-          path: "/",
-          httpOnly: true,
-          secure: false,
-        },
-      ]);
-    }
-
-    const page = await context.newPage();
-    await page.goto(url, { waitUntil: "networkidle" });
-    await page.evaluateHandle("document.fonts.ready");
-
-    const pdf = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      margin: { top: "0", right: "0", bottom: "0", left: "0" },
-      preferCSSPageSize: true,
-    });
-
-    await context.close();
-    return Buffer.from(pdf);
-  } finally {
-    release(browser);
+/** Thrown when the PDF worker is saturated — callers should return 429. */
+export class PdfBusyError extends Error {
+  constructor() {
+    super("PDF generation is busy right now. Please try again shortly.");
+    this.name = "PdfBusyError";
   }
+}
+
+const MAX_CONCURRENT = 3;
+const MAX_QUEUE = 10;
+let activeRenders = 0;
+const renderQueue: (() => void)[] = [];
+
+async function withConcurrency<T>(fn: () => Promise<T>): Promise<T> {
+  if (activeRenders >= MAX_CONCURRENT) {
+    if (renderQueue.length >= MAX_QUEUE) throw new PdfBusyError();
+    await new Promise<void>((resolve) => renderQueue.push(resolve));
+  }
+  activeRenders += 1;
+  try {
+    return await fn();
+  } finally {
+    activeRenders -= 1;
+    const next = renderQueue.shift();
+    if (next) next();
+  }
+}
+
+export async function renderPdf({ url, sessionCookie }: PdfOptions): Promise<Buffer> {
+  return withConcurrency(async () => {
+    const browser = await acquire();
+    try {
+      const context = await browser.newContext();
+
+      if (sessionCookie) {
+        const host = new URL(url).host;
+        await context.addCookies([
+          {
+            name: "session",
+            value: sessionCookie,
+            domain: host,
+            path: "/",
+            httpOnly: true,
+            secure: false,
+          },
+        ]);
+      }
+
+      const page = await context.newPage();
+      await page.goto(url, { waitUntil: "networkidle" });
+      await page.evaluateHandle("document.fonts.ready");
+
+      const pdf = await page.pdf({
+        format: "A4",
+        printBackground: true,
+        margin: { top: "0", right: "0", bottom: "0", left: "0" },
+        preferCSSPageSize: true,
+      });
+
+      await context.close();
+      return Buffer.from(pdf);
+    } finally {
+      release(browser);
+    }
+  });
 }
 
 export function appUrl(path: string): string {

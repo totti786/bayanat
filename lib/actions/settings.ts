@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { requireOrg } from "@/lib/auth";
 import { orgSettingsSchema } from "@/lib/validators";
 import { generateSelfSignedCert } from "@/lib/pdfsign";
+import { audit } from "@/lib/audit";
 
 export type SettingsState = { error?: string; success?: boolean } | null;
 
@@ -42,7 +43,7 @@ export async function updateOrgSettings(
   _prev: SettingsState,
   formData: FormData
 ): Promise<SettingsState> {
-  const { org } = await requireOrg();
+  const { org, id, email } = await requireOrg();
 
   const parsed = orgSettingsSchema.safeParse({
     name: formData.get("name"),
@@ -94,6 +95,7 @@ export async function updateOrgSettings(
     },
   });
 
+  await audit(org.id, { id, email }, { action: "settings.updated", entity: "organization", entityId: org.id });
   revalidatePath("/settings");
   revalidatePath("/");
   return { success: true };

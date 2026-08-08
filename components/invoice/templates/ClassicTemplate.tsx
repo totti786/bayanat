@@ -10,6 +10,7 @@ export default function ClassicTemplate(data: InvoiceDocumentData) {
   const badge = STATUS_BADGE[status];
   const taxLabel = invoice.taxName || (invoice.taxRate ? tr("tax", lang) : "");
   const isQuote = data.kind === "quote";
+  const isCredit = data.kind === "credit_note";
   const secondaryDate = isQuote ? invoice.expiryDate : invoice.dueDate;
   const secondaryLabel = isQuote ? "expiryDate" : "dueDate";
 
@@ -45,7 +46,7 @@ export default function ClassicTemplate(data: InvoiceDocumentData) {
 
         <div className="text-end">
           <h1 className="text-[32px] font-extrabold leading-none tracking-tight text-brand-950">
-            {tr(isQuote ? "quote" : "invoice", lang)}
+            {tr(isCredit ? "creditNote" : isQuote ? "quote" : "invoice", lang)}
           </h1>
           <div className="mt-4 space-y-1 text-[11px] text-neutral-600">
             <p>

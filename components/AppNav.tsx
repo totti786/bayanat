@@ -7,13 +7,15 @@ import { LogoMark } from "@/components/Logo";
 import LangToggle from "@/components/LangToggle";
 import { u, type UiLang } from "@/lib/ui";
 
-export default function AppNav({ orgName, lang }: { orgName: string; lang: UiLang }) {
+export default function AppNav({ orgName, lang, unread = 0 }: { orgName: string; lang: UiLang; unread?: number }) {
   const pathname = usePathname();
 
   const links = [
     { href: "/", key: "dashboard" },
     { href: "/invoices", key: "invoices" },
     { href: "/recurring", key: "recurring" },
+    { href: "/catalog", key: "catalog" },
+    { href: "/reports", key: "reports" },
     { href: "/clients", key: "clients" },
     { href: "/settings", key: "settings" },
   ];
@@ -52,6 +54,14 @@ export default function AppNav({ orgName, lang }: { orgName: string; lang: UiLan
           </nav>
         </div>
         <div className="flex items-center gap-1">
+          <Link href="/notifications" className="relative rounded-md px-2.5 py-1.5 text-sm font-medium text-neutral-600 hover:bg-white hover:text-neutral-900" aria-label="Notifications">
+            🔔
+            {unread > 0 && (
+              <span className="absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+                {unread}
+              </span>
+            )}
+          </Link>
           <LangToggle lang={lang} />
           <form action={logout}>
             <button

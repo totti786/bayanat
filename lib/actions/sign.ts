@@ -6,6 +6,8 @@ import { prisma } from "@/lib/db";
 import { requireOrg } from "@/lib/auth";
 import { renderPdf, appUrl } from "@/lib/pdf";
 import { signPdf, certConfigured, certCommonName } from "@/lib/pdfsign";
+import { notify } from "@/lib/notify";
+import { audit } from "@/lib/audit";
 
 export type SignState = { error?: string; success?: boolean; signer?: string } | null;
 
@@ -16,7 +18,7 @@ export async function signInvoicePdf(
 ): Promise<SignState> {
   void _prev;
   void formData;
-  const { org } = await requireOrg();
+  const { org, id, email } = await requireOrg();
 
   if (!certConfigured(org.signKey, org.signCert)) {
     return {
@@ -50,6 +52,14 @@ export async function signInvoicePdf(
     await prisma.invoice.update({
       where: { id: invoiceId },
       data: { signedPdf: new Uint8Array(signed), signedAt: new Date() },
+    });
+
+    await audit(org.id, { id, email }, { action: "invoice.signed", entity: "invoice", entityId: invoiceId, detail: invoice.number ?? undefined });
+    await notify(org.id, {
+      type: "invoice_signed",
+      title: `Invoice ${invoice.number ?? ""} digitally signed`,
+      titleAr: `تم توقيع الفاتورة ${invoice.number ?? ""} رقمياً`,
+      invoiceId,
     });
 
     revalidatePath(`/invoices/${invoiceId}`);

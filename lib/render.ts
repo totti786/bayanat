@@ -63,7 +63,7 @@ export function toDocumentData(
   return {
     template,
     lang,
-    kind: invoice.kind === "quote" ? "quote" : "invoice",
+    kind: invoice.kind,
     numerals,
     org: {
       name: invoice.org.name,

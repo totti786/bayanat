@@ -11,6 +11,7 @@ export default function ModernTemplate(data: InvoiceDocumentData) {
   const taxLabel = invoice.taxName || (invoice.taxRate ? tr("tax", lang) : "");
   const unpaid = status === "sent" || status === "partially_paid" || status === "overdue";
   const isQuote = data.kind === "quote";
+  const isCredit = data.kind === "credit_note";
   const secondaryDate = isQuote ? invoice.expiryDate : invoice.dueDate;
   const secondaryLabel = isQuote ? "expiryDate" : "dueDate";
 
@@ -44,7 +45,7 @@ export default function ModernTemplate(data: InvoiceDocumentData) {
 
         <div className="text-end">
           <h1 className="text-[34px] font-extrabold leading-none tracking-tight text-white">
-            {tr(isQuote ? "quote" : "invoice", lang)}
+            {tr(isCredit ? "creditNote" : isQuote ? "quote" : "invoice", lang)}
           </h1>
           <div className="mt-3 space-y-1 text-[11px] text-white/80">
             <p>

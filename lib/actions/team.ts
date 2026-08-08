@@ -6,8 +6,9 @@ import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { requireOrg, getSessionUser } from "@/lib/auth";
 import { hashPassword, verifyPassword } from "@/lib/password";
-import { createSession } from "@/lib/auth";
+import { createSession, invalidateSessions, setActiveOrg } from "@/lib/auth";
 import { appUrl } from "@/lib/pdf";
+import { notify } from "@/lib/notify";
 import { emailConfigured, sendMail } from "@/lib/mail";
 
 export type TeamState = { error?: string; success?: boolean; inviteUrl?: string } | null;
@@ -25,7 +26,21 @@ export async function inviteMember(
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Invalid email" };
 
   const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) return { error: "A user with this email already exists" };
+  if (existing) {
+    // Existing account: add them straight to the org as a member.
+    await prisma.membership.upsert({
+      where: { userId_orgId: { userId: existing.id, orgId: user.org.id } },
+      create: { userId: existing.id, orgId: user.org.id, role },
+      update: { role },
+    });
+    await notify(user.org.id, {
+      type: "invite",
+      title: `${email} joined the team`,
+      titleAr: `انضم ${email} إلى الفريق`,
+    });
+    revalidatePath("/settings/team");
+    return { success: true };
+  }
 
   const token = randomBytes(24).toString("hex");
   await prisma.invite.create({
@@ -40,6 +55,11 @@ export async function inviteMember(
   });
 
   const inviteUrl = `${appUrl("")}/accept/${token}`;
+  await notify(user.org.id, {
+    type: "invite",
+    title: `${email} invited to the team`,
+    titleAr: `تمت دعوة ${email} للفريق`,
+  });
 
   if (emailConfigured()) {
     try {
@@ -108,6 +128,7 @@ export async function changePassword(
     where: { id: user.id },
     data: { passwordHash: hashPassword(next) },
   });
+  await invalidateSessions(user.id);
   return { success: true };
 }
 
@@ -129,19 +150,33 @@ export async function acceptInvite(
   const email = invite.email;
 
   const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) return { error: "An account with this email already exists" };
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      name,
-      passwordHash: hashPassword(password),
-      role: invite.role,
-      orgId: invite.orgId,
-    },
-  });
+  let user;
+  if (existing) {
+    // Existing account: add them to the org and sign them into it.
+    await prisma.membership.upsert({
+      where: { userId_orgId: { userId: existing.id, orgId: invite.orgId } },
+      create: { userId: existing.id, orgId: invite.orgId, role: invite.role },
+      update: { role: invite.role },
+    });
+    user = existing;
+  } else {
+    user = await prisma.user.create({
+      data: {
+        email,
+        name,
+        passwordHash: hashPassword(password),
+        role: invite.role,
+        orgId: invite.orgId,
+        memberships: {
+          create: { orgId: invite.orgId, role: invite.role },
+        },
+      },
+    });
+  }
 
   await prisma.invite.update({ where: { id: invite.id }, data: { accepted: true } });
-  await createSession(user.id);
+  await createSession(user.id, user.sessionVersion);
+  await setActiveOrg(invite.orgId);
   redirect("/");
 }

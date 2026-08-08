@@ -42,6 +42,9 @@ export default async function LoginPage({
         <Card className="p-6">
           <LoginForm lang={lang} />
         </Card>
+        <p className="mt-6 text-center text-xs text-neutral-400">
+          <a href="/terms" className="hover:underline">Terms</a> · <a href="/privacy" className="hover:underline">Privacy</a>
+        </p>
       </div>
     </div>
   );

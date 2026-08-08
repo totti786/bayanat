@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { verifyShareToken } from "@/lib/share";
 import { getInvoiceForRenderPublic } from "@/lib/data";
-import { renderPdf, appUrl } from "@/lib/pdf";
+import { renderPdf, appUrl, PdfBusyError } from "@/lib/pdf";
+import { reportError } from "@/lib/log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,9 +32,18 @@ export async function GET(
     });
   }
 
-  const pdf = await renderPdf({
-    url: appUrl(`/share/${token}?format=pdf`),
-  });
+  let pdf: Buffer;
+  try {
+    pdf = await renderPdf({
+      url: appUrl(`/share/${token}?format=pdf`),
+    });
+  } catch (e) {
+    if (e instanceof PdfBusyError) {
+      return NextResponse.json({ error: e.message }, { status: 429 });
+    }
+    reportError("pdf:share", e, { token: token });
+    return NextResponse.json({ error: "Could not generate the PDF" }, { status: 500 });
+  }
 
   const filename = `${(data.invoice.number ?? "invoice").replace(/[^a-zA-Z0-9-]+/g, "_")}.pdf`;
   return new NextResponse(new Uint8Array(pdf), {

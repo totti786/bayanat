@@ -22,7 +22,7 @@ export interface InvoiceDocumentData {
   template: TemplateId;
   lang: Lang;
   numerals: Numerals;
-  kind?: "invoice" | "quote";
+  kind?: "invoice" | "quote" | "credit_note";
   org: {
     name: string;
     nameAr?: string | null;

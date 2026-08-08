@@ -19,6 +19,10 @@ export default async function NewInvoicePage({
     where: { orgId: org.id },
     orderBy: { name: "asc" },
   });
+  const products = await prisma.product.findMany({
+    where: { orgId: org.id, active: true },
+    orderBy: { name: "asc" },
+  });
 
   if (clients.length === 0) redirect("/clients/new");
 
@@ -35,6 +39,13 @@ export default async function NewInvoicePage({
         clients={clients}
         defaultClientId={clientId}
         uiLang={lang}
+        products={products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          nameAr: p.nameAr,
+          unitPrice: p.unitPrice / 100,
+          taxRate: p.taxRate,
+        }))}
         org={{
           defaultCurrency: org.defaultCurrency,
           defaultTaxName: org.defaultTaxName,

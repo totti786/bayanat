@@ -27,6 +27,10 @@ export default async function EditInvoicePage({
     where: { orgId: org.id },
     orderBy: { name: "asc" },
   });
+  const products = await prisma.product.findMany({
+    where: { orgId: org.id, active: true },
+    orderBy: { name: "asc" },
+  });
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -40,6 +44,13 @@ export default async function EditInvoicePage({
         <InvoiceForm
           clients={clients}
           uiLang={lang}
+          products={products.map((p) => ({
+            id: p.id,
+            name: p.name,
+            nameAr: p.nameAr,
+            unitPrice: p.unitPrice / 100,
+            taxRate: p.taxRate,
+          }))}
           org={{
             defaultCurrency: org.defaultCurrency,
             defaultTaxName: org.defaultTaxName,
