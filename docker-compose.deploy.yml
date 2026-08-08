@@ -1,0 +1,40 @@
+name: invoice-app
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: invoice-app:latest
+    container_name: invoice-app
+    restart: unless-stopped
+    env_file:
+      - .env.deploy
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - invoice_data:/data
+    networks:
+      - edge
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=edge"
+      - "traefik.http.routers.invoice-app.rule=Host(`invoice.deshli.site`)"
+      - "traefik.http.routers.invoice-app.entrypoints=websecure"
+      - "traefik.http.routers.invoice-app.tls=true"
+      - "traefik.http.routers.invoice-app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.invoice-app.loadbalancer.server.port=3000"
+
+volumes:
+  invoice_data:
+
+networks:
+  edge:
+    external: true

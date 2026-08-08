@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f5f4f0;
+  --foreground: #17211f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: var(--font-inter);
+  --font-arabic: var(--font-cairo);
+}
+
+/* Brand colors are runtime-overridable: utilities reference these variables,
+   so an org can re-theme the UI and PDFs with a single accent. */
+@theme {
+  --color-brand-50: #f0f6f5;
+  --color-brand-100: #dcebe9;
+  --color-brand-200: #b9d7d4;
+  --color-brand-300: #8bbbb7;
+  --color-brand-400: #5b9994;
+  --color-brand-500: #3d7c78;
+  --color-brand-600: #2c6562;
+  --color-brand-700: #25514f;
+  --color-brand-800: #204240;
+  --color-brand-900: #1d3836;
+  --color-brand-950: #0d1f1e;
+
+  --color-gold-300: #e3cfa4;
+  --color-gold-400: #d4b477;
+  --color-gold-500: #c09a4e;
+  --color-gold-600: #a37f39;
+  --color-gold-700: #84652e;
+
+  --color-paper: #f8f7f2;
+  --color-ink: #17211f;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-feature-settings: "cv11", "ss01";
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  /* Multi-page invoice support */
+  thead {
+    display: table-header-group;
+  }
+  tr {
+    break-inside: avoid;
+  }
+  .avoid-break {
+    break-inside: avoid;
+  }
+}

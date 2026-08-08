@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum UserRole {
+  admin
+  accountant
+  viewer
+}
+
+enum InvoiceStatus {
+  draft
+  sent
+  paid
+  cancelled
+}
+
+enum InvoiceTemplate {
+  classic
+  modern
+  minimal
+  bilingual
+}
+
+enum InvoiceKind {
+  invoice
+  quote
+}
+
+enum RecurrenceFrequency {
+  weekly
+  monthly
+  quarterly
+  yearly
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  name         String
+  role         UserRole     @default(accountant)
+  createdAt    DateTime     @default(now())
+  orgId        String?
+  org          Organization? @relation(fields: [orgId], references: [id])
+}
+
+model Organization {
+  id              String       @id @default(cuid())
+  name            String
+  nameAr          String?
+  address         String?
+  addressAr       String?
+  vatId           String?
+  bankDetails     String?
+  logoUrl         String?
+  prefix          String       @default("INV")
+  nextNumber      Int          @default(1)
+  defaultCurrency String       @default("USD")
+  defaultTaxName  String?
+  defaultTaxRate  Float?
+  taxInclusive    Boolean      @default(false)
+  numerals        String       @default("western") // western | eastern
+  defaultTemplate InvoiceTemplate @default(classic)
+  hijriDates      Boolean      @default(false)
+  signKey         String?
+  signCert        String?
+  paymentMethods  String       @default("[]")
+  lateFeePercent  Float        @default(0)
+  reportCurrency  String?
+  themeAccent     String?
+  createdAt       DateTime     @default(now())
+  users           User[]
+  clients         Client[]
+  invoices        Invoice[]
+  invites         Invite[]
+  recurring       RecurringRule[]
+}
+
+model Client {
+  id           String       @id @default(cuid())
+  orgId        String
+  org          Organization @relation(fields: [orgId], references: [id])
+  name         String
+  nameAr       String?
+  email        String?
+  phone        String?
+  address      String?
+  addressAr    String?
+  taxId        String?
+  currency     String?
+  language     String       @default("en")
+  paymentTerms Int          @default(14)
+  createdAt    DateTime     @default(now())
+  invoices     Invoice[]
+  recurring    RecurringRule[]
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  orgId         String
+  org           Organization  @relation(fields: [orgId], references: [id])
+  clientId      String
+  client        Client        @relation(fields: [clientId], references: [id])
+  number        String?
+  seq           Int?
+  lang          String        @default("en")
+  currency      String
+  issueDate     DateTime
+  dueDate       DateTime?
+  status        InvoiceStatus @default(draft)
+  kind          InvoiceKind   @default(invoice)
+  expiryDate    DateTime?
+  discountType  String        @default("none") // none | percentage | fixed
+  discountValue Int?
+  taxName       String?
+  taxRate       Float?
+  taxInclusive  Boolean       @default(false)
+  template      InvoiceTemplate @default(classic)
+  notes         String?
+  notesAr       String?
+  signedPdf     Bytes?
+  signedAt      DateTime?
+  createdAt     DateTime      @default(now())
+  items         LineItem[]
+  payments      Payment[]
+}
+
+model LineItem {
+  id            String   @id @default(cuid())
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id])
+  description   String
+  descriptionAr String?
+  quantity      Float
+  unitPrice     Int
+  taxRate       Float?
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  invoiceId String
+  invoice   Invoice       @relation(fields: [invoiceId], references: [id])
+  amount    Int
+  method    String   @default("bank_transfer")
+  date      DateTime      @default(now())
+  reference String?
+  createdAt DateTime      @default(now())
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id])
+  email     String
+  role      UserRole @default(accountant)
+  token     String   @unique
+  invitedBy String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  accepted  Boolean  @default(false)
+}
+
+model RecurringRule {
+  id            String             @id @default(cuid())
+  orgId         String
+  org           Organization       @relation(fields: [orgId], references: [id])
+  clientId      String
+  client        Client             @relation(fields: [clientId], references: [id])
+  frequency     RecurrenceFrequency
+  interval      Int                @default(1)
+  dayOfMonth    Int?
+  lang          String             @default("en")
+  currency      String
+  template      InvoiceTemplate    @default(classic)
+  taxName       String?
+  taxRate       Float?
+  taxInclusive  Boolean            @default(false)
+  discountType  String             @default("none")
+  discountValue Int?
+  notes         String?
+  notesAr       String?
+  itemsJson     String
+  active        Boolean            @default(true)
+  nextRun       DateTime
+  lastRunAt     DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
