@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// invoice-app auto-redeploy watcher
+// bayanat auto-redeploy watcher
 // Polls the repo for file changes; when a change settles (no new mtime for
 // SETTLE_MS), runs `docker compose up -d --build` so the live site reflects
 // code edits automatically. Safe for editors that save via rename (vim etc).
@@ -8,7 +8,7 @@ import { readdir, stat } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import path from "node:path";
 
-const ROOT = "/home/tarek/Projects/invoice-app";
+const ROOT = "/home/tarek/Projects/bayanat";
 const COMPOSE = "docker-compose.deploy.yml";
 const POLL_MS = 4000;            // scan interval
 const SETTLE_MS = 6000;          // wait for edits to settle before rebuild

@@ -1,7 +1,7 @@
 import { chromium } from "playwright";
 import Database from "better-sqlite3";
 
-const db = new Database("/home/tarek/Projects/invoice-app/dev.db");
+const db = new Database("/home/tarek/Projects/bayanat/dev.db");
 const b = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
 const ctx = await b.newContext();
 const p = await ctx.newPage();

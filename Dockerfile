@@ -1,4 +1,4 @@
-# Bayanat (invoice-app) — production image
+# Bayanat — production image
 # Node 22 + Next.js 16 + Prisma 7 (SQLite) + Playwright Chromium (PDF rendering)
 # Stage 1: install deps, chromium, build
 FROM node:22-bookworm-slim AS builder

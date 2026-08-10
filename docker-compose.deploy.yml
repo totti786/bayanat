@@ -1,12 +1,12 @@
-name: invoice-app
+name: bayanat
 
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile
-    image: invoice-app:latest
-    container_name: invoice-app
+    image: bayanat:latest
+    container_name: bayanat
     restart: unless-stopped
     env_file:
       - .env.deploy
@@ -26,11 +26,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=edge"
-      - "traefik.http.routers.invoice-app.rule=Host(`invoice.deshli.site`)"
-      - "traefik.http.routers.invoice-app.entrypoints=websecure"
-      - "traefik.http.routers.invoice-app.tls=true"
-      - "traefik.http.routers.invoice-app.tls.certresolver=letsencrypt"
-      - "traefik.http.services.invoice-app.loadbalancer.server.port=3000"
+      - "traefik.http.routers.bayanat.rule=Host(`invoice.deshli.site`)"
+      - "traefik.http.routers.bayanat.entrypoints=websecure"
+      - "traefik.http.routers.bayanat.tls=true"
+      - "traefik.http.routers.bayanat.tls.certresolver=letsencrypt"
+      - "traefik.http.services.bayanat.loadbalancer.server.port=3000"
 
 volumes:
   invoice_data:
