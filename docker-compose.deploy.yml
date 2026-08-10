@@ -34,6 +34,7 @@ services:
 
 volumes:
   invoice_data:
+    name: invoice-app_invoice_data
 
 networks:
   edge:
