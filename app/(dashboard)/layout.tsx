@@ -25,7 +25,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen">
       <ThemeStyle accent={user.org?.themeAccent} />
       <AppNav orgName={user.org?.name ?? "Invoicing"} lang={lang} unread={unread} />
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-8">
         <ToastProvider>
           <ConfirmProvider>{children}</ConfirmProvider>
         </ToastProvider>

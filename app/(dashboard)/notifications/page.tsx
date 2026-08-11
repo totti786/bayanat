@@ -4,15 +4,16 @@ import { requireOrg } from "@/lib/auth";
 import { getUiLang } from "@/lib/ui-lang";
 import { markAllNotificationsRead } from "@/lib/actions/notifications";
 import { Card, Button } from "@/components/ui";
+import { Send, Wallet, FileSignature, UserPlus, RefreshCw, Bell, type LucideIcon } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-const TYPE_ICON: Record<string, string> = {
-  invoice_sent: "📤",
-  payment_received: "💰",
-  invoice_signed: "✍️",
-  invite: "👤",
-  recurring_generated: "🔁",
+const TYPE_ICON: Record<string, LucideIcon> = {
+  invoice_sent: Send,
+  payment_received: Wallet,
+  invoice_signed: FileSignature,
+  invite: UserPlus,
+  recurring_generated: RefreshCw,
 };
 
 export default async function NotificationsPage() {
@@ -28,7 +29,7 @@ export default async function NotificationsPage() {
   const unread = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">
@@ -65,7 +66,12 @@ export default async function NotificationsPage() {
                 key={n.id}
                 className={`flex items-start gap-3 px-5 py-3.5 ${n.read ? "opacity-60" : ""}`}
               >
-                <span className="text-lg">{TYPE_ICON[n.type] ?? "🔔"}</span>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100">
+                  {(() => {
+                    const Icon = TYPE_ICON[n.type] ?? Bell;
+                    return <Icon size={16} className="text-neutral-500" aria-hidden />;
+                  })()}
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-neutral-800">
                     {lang === "ar" && n.titleAr ? n.titleAr : n.title}

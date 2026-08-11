@@ -33,7 +33,7 @@ export default async function EditInvoicePage({
   });
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-neutral-900">{lang === "ar" ? "تعديل الفاتورة" : "Edit invoice"}</h1>
         <p className="mt-1 text-sm text-neutral-500">
@@ -57,6 +57,17 @@ export default async function EditInvoicePage({
             defaultTaxRate: org.defaultTaxRate,
             taxInclusive: org.taxInclusive,
             defaultTemplate: org.defaultTemplate,
+            name: org.name,
+            nameAr: org.nameAr,
+            address: org.address,
+            addressAr: org.addressAr,
+            vatId: org.vatId,
+            bankDetails: org.bankDetails,
+            logoUrl: org.logoUrl,
+            numerals: org.numerals,
+            hijriDates: org.hijriDates,
+            paymentMethods: org.paymentMethods,
+            themeAccent: org.themeAccent,
           }}
           invoice={{
             id: invoice.id,

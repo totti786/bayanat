@@ -202,6 +202,11 @@ const dict: Record<string, Entry> = {
   noAccount: { en: "Don't have an account?", ar: "ليس لديك حساب؟" },
   haveAccount: { en: "Already have an account?", ar: "لديك حساب بالفعل؟" },
   createOne: { en: "Create one", ar: "أنشئ واحداً" },
+
+  // Invoice live preview
+  livePreview: { en: "Live preview", ar: "معاينة حية" },
+  formView: { en: "Form", ar: "النموذج" },
+  previewHint: { en: "Updates as you type", ar: "تتحدث أثناء الكتابة" },
 };
 
 export function u(key: string, lang: UiLang): string {

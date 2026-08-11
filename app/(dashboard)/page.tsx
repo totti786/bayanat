@@ -3,17 +3,13 @@ import { prisma } from "@/lib/db";
 import { requireOrg } from "@/lib/auth";
 import { computeTotals, withPayments } from "@/lib/totals";
 import { effectiveStatus, STATUS_LABELS, STATUS_COLORS } from "@/lib/status";
-import { formatMoney, formatDate, type Lang, type Numerals } from "@/lib/format";
+import { formatMoney, formatDate, type Numerals } from "@/lib/format";
 import { loadRates, convertMinor } from "@/lib/rates";
 import { getUiLang } from "@/lib/ui-lang";
 import { u } from "@/lib/ui";
 import { Card, Badge, ButtonLink } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
-
-function invoiceLang(lang: string): Lang {
-  return lang === "ar" ? "ar" : "en";
-}
 
 export default async function DashboardPage() {
   const { org } = await requireOrg();
@@ -156,15 +152,15 @@ export default async function DashboardPage() {
                       {inv.number ?? "Draft"} · {inv.client.name}
                     </p>
                     <p className="text-xs text-neutral-500">
-                      {formatDate(inv.issueDate, invoiceLang(inv.lang), numerals)}
+                      {formatDate(inv.issueDate, uiLang, numerals)}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <Badge className={STATUS_COLORS[status]}>
-                      {STATUS_LABELS[status][invoiceLang(inv.lang)]}
+                      {STATUS_LABELS[status][uiLang]}
                     </Badge>
                     <span className="text-sm font-semibold text-neutral-900">
-                      {formatMoney(totals.total, inv.currency, invoiceLang(inv.lang), numerals)}
+                      {formatMoney(totals.total, inv.currency, uiLang, numerals)}
                     </span>
                   </div>
                 </Link>

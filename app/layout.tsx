@@ -4,17 +4,28 @@ import { getUiLang } from "@/lib/ui-lang";
 import "./globals.css";
 
 const inter = localFont({
-  src: "../public/fonts/Inter-var.ttf",
+  src: "../public/fonts/InstrumentSans-var.ttf",
   variable: "--font-inter",
   display: "swap",
   weight: "100 900",
 });
 
-const cairo = localFont({
-  src: "../public/fonts/Cairo-var.ttf",
-  variable: "--font-cairo",
+const fraunces = localFont({
+  src: "../public/fonts/Fraunces-var.ttf",
+  variable: "--font-fraunces",
   display: "swap",
   weight: "100 900",
+});
+
+const cairo = localFont({
+  src: [
+    { path: "../public/fonts/IBMPlexSansArabic-Regular.ttf", weight: "400", style: "normal" },
+    { path: "../public/fonts/IBMPlexSansArabic-Medium.ttf", weight: "500", style: "normal" },
+    { path: "../public/fonts/IBMPlexSansArabic-SemiBold.ttf", weight: "600", style: "normal" },
+    { path: "../public/fonts/IBMPlexSansArabic-Bold.ttf", weight: "700", style: "normal" },
+  ],
+  variable: "--font-cairo",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -39,7 +50,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang={lang}
       dir={dir}
-      className={`${inter.variable} ${cairo.variable} h-full antialiased`}
+      className={`${inter.variable} ${fraunces.variable} ${cairo.variable} h-full antialiased`}
     >
       <body
         className="min-h-full font-sans"

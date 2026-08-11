@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { X } from "lucide-react";
 import { u, type UiLang } from "@/lib/ui";
 import {
   updateOrgSettings,
@@ -262,7 +263,7 @@ export default function SettingsForm({
                       className="text-brand-400 hover:text-red-600"
                       aria-label={`Remove ${m}`}
                     >
-                      ✕
+                      <X size={14} strokeWidth={2.5} aria-hidden />
                     </button>
                   </span>
                 ))}

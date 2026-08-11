@@ -25,7 +25,7 @@ export function Wordmark({
 }) {
   return (
     <span className="inline-flex items-baseline gap-1.5">
-      <span className={`font-sans font-bold tracking-tight ${compact ? "text-base" : "text-lg"} ${dark ? "text-neutral-900" : "text-white"}`}>
+      <span className={`font-display font-semibold tracking-tight ${compact ? "text-base" : "text-lg"} ${dark ? "text-neutral-900" : "text-white"}`}>
         Bayanat
       </span>
       <span

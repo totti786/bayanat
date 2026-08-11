@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireOrg } from "@/lib/auth";
 import { computeTotals, withPayments } from "@/lib/totals";
 import { effectiveStatus, STATUS_LABELS, STATUS_COLORS } from "@/lib/status";
-import { formatMoney, formatDate, type Lang, type Numerals } from "@/lib/format";
+import { formatMoney, formatDate, type Numerals } from "@/lib/format";
 import { Card, Badge, ButtonLink } from "@/components/ui";
 import { getUiLang } from "@/lib/ui-lang";
 import { u } from "@/lib/ui";
@@ -28,7 +28,6 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   if (!client) notFound();
 
   const numerals: Numerals = org.numerals === "eastern" ? "eastern" : "western";
-  const langOf = (l: string): Lang => (l === "ar" ? "ar" : "en");
 
   const rows = client.invoices.map((inv) => {
     const totals = withPayments(computeTotals(inv, inv.items), inv.payments, {
@@ -129,12 +128,12 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
               >
                 <div>
                   <p className="font-medium text-neutral-900">{inv.number ?? u("draft", uiLang)}</p>
-                  <p className="text-xs text-neutral-500">{formatDate(inv.issueDate, langOf(inv.lang), numerals)}</p>
+                  <p className="text-xs text-neutral-500">{formatDate(inv.issueDate, uiLang, numerals)}</p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <Badge className={STATUS_COLORS[status]}>{STATUS_LABELS[status][langOf(inv.lang)]}</Badge>
+                  <Badge className={STATUS_COLORS[status]}>{STATUS_LABELS[status][uiLang]}</Badge>
                   <span className="w-32 text-end font-semibold text-neutral-900">
-                    {formatMoney(totals.total, inv.currency, langOf(inv.lang), numerals)}
+                    {formatMoney(totals.total, inv.currency, uiLang, numerals)}
                   </span>
                 </div>
               </Link>

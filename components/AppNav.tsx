@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Bell } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import { LogoMark } from "@/components/Logo";
 import LangToggle from "@/components/LangToggle";
@@ -25,7 +26,7 @@ export default function AppNav({ orgName, lang, unread = 0 }: { orgName: string;
 
   return (
     <header className="sticky top-0 z-20 border-b border-neutral-200/80 bg-[var(--background)]/90 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2.5">
             <LogoMark size={28} />
@@ -55,7 +56,7 @@ export default function AppNav({ orgName, lang, unread = 0 }: { orgName: string;
         </div>
         <div className="flex items-center gap-1">
           <Link href="/notifications" className="relative rounded-md px-2.5 py-1.5 text-sm font-medium text-neutral-600 hover:bg-white hover:text-neutral-900" aria-label="Notifications">
-            🔔
+            <Bell size={18} strokeWidth={2} aria-hidden />
             {unread > 0 && (
               <span className="absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
                 {unread}

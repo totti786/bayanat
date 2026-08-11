@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireOrg } from "@/lib/auth";
 import { computeTotals, withPayments } from "@/lib/totals";
 import { effectiveStatus, STATUS_LABELS, STATUS_COLORS } from "@/lib/status";
-import { formatMoney, formatDate, type Lang, type Numerals } from "@/lib/format";
+import { formatMoney, formatDate, type Numerals } from "@/lib/format";
 import { Card, Badge, ButtonLink } from "@/components/ui";
 import Pagination from "@/components/Pagination";
 import { getUiLang } from "@/lib/ui-lang";
@@ -61,7 +61,6 @@ export default async function InvoicesPage({
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const numerals: Numerals = org.numerals === "eastern" ? "eastern" : "western";
-  const langOf = (l: string): Lang => (l === "ar" ? "ar" : "en");
 
   const rows = invoices.map((inv) => {
     const totals = withPayments(computeTotals(inv, inv.items), inv.payments, {
@@ -151,17 +150,17 @@ export default async function InvoicesPage({
                         </Link>
                       </td>
                       <td className="px-5 py-3.5 text-neutral-600">{inv.client.name}</td>
-                      <td className="px-5 py-3.5 text-neutral-600">{formatDate(inv.issueDate, langOf(inv.lang), numerals)}</td>
+                      <td className="px-5 py-3.5 text-neutral-600">{formatDate(inv.issueDate, uiLang, numerals)}</td>
                       <td className="px-5 py-3.5">
                         <Badge className={STATUS_COLORS[status]}>
-                          {STATUS_LABELS[status][langOf(inv.lang)]}
+                          {STATUS_LABELS[status][uiLang]}
                         </Badge>
                       </td>
                       <td className="px-5 py-3.5 text-end font-semibold text-neutral-900">
-                        {formatMoney(totals.total, inv.currency, langOf(inv.lang), numerals)}
+                        {formatMoney(totals.total, inv.currency, uiLang, numerals)}
                       </td>
                       <td className={`px-5 py-3.5 text-end font-medium ${totals.balance > 0 ? "text-amber-700" : "text-neutral-400"}`}>
-                        {formatMoney(totals.balance, inv.currency, langOf(inv.lang), numerals)}
+                        {formatMoney(totals.balance, inv.currency, uiLang, numerals)}
                       </td>
                     </tr>
                   ))}

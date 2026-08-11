@@ -27,7 +27,7 @@ export default async function NewInvoicePage({
   if (clients.length === 0) redirect("/clients/new");
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-neutral-900">{lang === "ar" ? "فاتورة جديدة" : "New invoice"}</h1>
         <p className="mt-1 text-sm text-neutral-500">
@@ -36,7 +36,19 @@ export default async function NewInvoicePage({
       </div>
       <InvoiceForm
         key={clientId ?? "new"}
-        clients={clients}
+        clients={clients.map((c) => ({
+          id: c.id,
+          name: c.name,
+          nameAr: c.nameAr,
+          address: c.address,
+          addressAr: c.addressAr,
+          taxId: c.taxId,
+          email: c.email,
+          phone: c.phone,
+          currency: c.currency,
+          language: c.language,
+          paymentTerms: c.paymentTerms,
+        }))}
         defaultClientId={clientId}
         uiLang={lang}
         products={products.map((p) => ({
@@ -52,6 +64,17 @@ export default async function NewInvoicePage({
           defaultTaxRate: org.defaultTaxRate,
           taxInclusive: org.taxInclusive,
           defaultTemplate: org.defaultTemplate,
+          name: org.name,
+          nameAr: org.nameAr,
+          address: org.address,
+          addressAr: org.addressAr,
+          vatId: org.vatId,
+          bankDetails: org.bankDetails,
+          logoUrl: org.logoUrl,
+          numerals: org.numerals,
+          hijriDates: org.hijriDates,
+          paymentMethods: org.paymentMethods,
+          themeAccent: org.themeAccent,
         }}
       />
     </div>

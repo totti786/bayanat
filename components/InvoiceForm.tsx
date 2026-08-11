@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useMemo, useState, useActionState } from "react";
 import { createInvoice, updateInvoice } from "@/lib/actions/invoices";
 import { u, type UiLang } from "@/lib/ui";
+import InvoicePreview from "@/components/InvoicePreview";
+import { toDraftDocument } from "@/lib/preview";
 import {
   Button,
   Input,
@@ -26,6 +28,12 @@ interface InvoiceFormProps {
   clients: {
     id: string;
     name: string;
+    nameAr: string | null;
+    address: string | null;
+    addressAr: string | null;
+    taxId: string | null;
+    email: string | null;
+    phone: string | null;
     currency: string | null;
     language: string;
     paymentTerms: number;
@@ -38,6 +46,18 @@ interface InvoiceFormProps {
     defaultTaxRate: number | null;
     taxInclusive: boolean;
     defaultTemplate: string;
+    // Live-preview details (fall back to empty/quiet values when absent)
+    name?: string;
+    nameAr?: string | null;
+    address?: string | null;
+    addressAr?: string | null;
+    vatId?: string | null;
+    bankDetails?: string | null;
+    logoUrl?: string | null;
+    numerals?: string;
+    hijriDates?: boolean;
+    paymentMethods?: string;
+    themeAccent?: string | null;
   };
   invoice?: {
     id: string;
@@ -133,6 +153,92 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
   const ar = lang === "ar";
   const [catalogId, setCatalogId] = useState("");
 
+  // Controlled mirrors of fields that drive the live preview.
+  const [taxName, setTaxName] = useState(invoice?.taxName ?? org.defaultTaxName ?? "");
+  const [taxRate, setTaxRate] = useState(
+    invoice?.taxRate != null
+      ? String(invoice.taxRate)
+      : org.defaultTaxRate != null
+        ? String(org.defaultTaxRate)
+        : ""
+  );
+  const [discountValue, setDiscountValue] = useState(
+    invoice?.discountValue != null ? String(invoice.discountValue) : ""
+  );
+  const [notes, setNotes] = useState(invoice?.notes ?? "");
+  const [notesAr, setNotesAr] = useState(invoice?.notesAr ?? "");
+  const [view, setView] = useState<"form" | "preview">("form");
+
+  const doc = useMemo(() => {
+    const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
+    return toDraftDocument({
+      kind: kind === "quote" ? "quote" : "invoice",
+      lang: lang === "ar" ? "ar" : "en",
+      template,
+      org: {
+        name: org.name ?? "",
+        nameAr: org.nameAr,
+        address: org.address,
+        addressAr: org.addressAr,
+        vatId: org.vatId,
+        bankDetails: org.bankDetails,
+        logoUrl: org.logoUrl,
+        numerals: org.numerals,
+        hijriDates: org.hijriDates,
+        paymentMethods: org.paymentMethods,
+        themeAccent: org.themeAccent,
+      },
+      client: selectedClient
+        ? {
+            name: selectedClient.name,
+            nameAr: selectedClient.nameAr,
+            address: selectedClient.address,
+            addressAr: selectedClient.addressAr,
+            taxId: selectedClient.taxId,
+            email: selectedClient.email,
+            phone: selectedClient.phone,
+          }
+        : null,
+      currency,
+      issueDate,
+      dueDate: kind === "quote" ? null : dueDate,
+      expiryDate: kind === "quote" ? expiryDate : null,
+      taxName: taxName || null,
+      taxRate: taxRate ? Number(taxRate) : null,
+      taxInclusive,
+      discountType,
+      discountValue: discountValue ? Number(discountValue) : null,
+      notes: notes || null,
+      notesAr: notesAr || null,
+      items: items.map((it) => ({
+        description: it.description,
+        descriptionAr: it.descriptionAr || null,
+        quantity: Number(it.quantity) || 0,
+        unitPrice: Number(it.unitPrice) || 0,
+        taxRate: it.taxRate ? Number(it.taxRate) : null,
+      })),
+    });
+  }, [
+    kind,
+    lang,
+    template,
+    taxInclusive,
+    currency,
+    issueDate,
+    dueDate,
+    expiryDate,
+    selectedClientId,
+    taxName,
+    taxRate,
+    discountType,
+    discountValue,
+    notes,
+    notesAr,
+    items,
+    clients,
+    org,
+  ]);
+
   function addFromCatalog() {
     const prod = products.find((p) => p.id === catalogId);
     if (!prod) return;
@@ -187,8 +293,36 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
   }
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction}>
       <ErrorBanner message={state?.error} />
+
+      <div className="mb-4 flex gap-2 xl:hidden">
+        <button
+          type="button"
+          onClick={() => setView("form")}
+          className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+            view === "form"
+              ? "border-brand-600 bg-brand-50 text-brand-900"
+              : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+          }`}
+        >
+          {u("formView", uiLang)}
+        </button>
+        <button
+          type="button"
+          onClick={() => setView("preview")}
+          className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+            view === "preview"
+              ? "border-brand-600 bg-brand-50 text-brand-900"
+              : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
+          }`}
+        >
+          {u("livePreview", uiLang)}
+        </button>
+      </div>
+
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_500px]">
+        <div className={`space-y-6 ${view === "form" ? "" : "hidden xl:block"}`}>
 
       <div className="rounded-xl border border-neutral-200 bg-white p-6">
         <h2 className="mb-4 text-sm font-semibold text-neutral-900">{u("invoiceDetails", uiLang)}</h2>
@@ -314,7 +448,7 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
             </Field>
           )}
           <Field label={u("taxName", uiLang)}>
-            <Input name="taxName" defaultValue={invoice?.taxName ?? org.defaultTaxName ?? ""} placeholder="VAT" />
+            <Input name="taxName" value={taxName} onChange={(e) => setTaxName(e.target.value)} placeholder="VAT" />
           </Field>
           <Field label={u("taxRate", uiLang)}>
             <Input
@@ -323,13 +457,8 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
               min={0}
               max={100}
               step="0.01"
-              defaultValue={
-                invoice?.taxRate != null
-                  ? String(invoice.taxRate)
-                  : org.defaultTaxRate != null
-                    ? String(org.defaultTaxRate)
-                    : ""
-              }
+              value={taxRate}
+              onChange={(e) => setTaxRate(e.target.value)}
             />
           </Field>
           <div className="flex items-end pb-1">
@@ -357,7 +486,8 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
                   type="number"
                   min={0}
                   step="0.01"
-                  defaultValue={invoice?.discountValue ?? ""}
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(e.target.value)}
                   placeholder={discountType === "percentage" ? "%" : "Amount"}
                 />
               )}
@@ -471,10 +601,10 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
         <h2 className="mb-4 text-sm font-semibold text-neutral-900">{u("notes", uiLang)}</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={`${u("notes", uiLang)} (EN)`}>
-            <Textarea name="notes" defaultValue={invoice?.notes ?? ""} placeholder="Thank you for your business." rows={3} />
+            <Textarea name="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Thank you for your business." rows={3} />
           </Field>
           <Field label={`${u("notes", uiLang)} (AR)`}>
-            <Textarea name="notesAr" defaultValue={invoice?.notesAr ?? ""} placeholder="شكراً لتعاملكم معنا" rows={3} dir="rtl" />
+            <Textarea name="notesAr" value={notesAr} onChange={(e) => setNotesAr(e.target.value)} placeholder="شكراً لتعاملكم معنا" rows={3} dir="rtl" />
           </Field>
         </div>
       </div>
@@ -487,6 +617,18 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
         <Button type="submit" disabled={pending}>
           {pending ? u("saving", uiLang) : invoice ? u("saveChanges", uiLang) : u("createInvoice", uiLang)}
         </Button>
+      </div>
+        </div>
+
+        <div className={`${view === "preview" ? "" : "hidden xl:block"}`}>
+          <div className="rounded-xl border border-neutral-200 bg-white p-4 xl:sticky xl:top-6">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-neutral-900">{u("livePreview", uiLang)}</h2>
+              <span className="text-[11px] text-neutral-400">{u("previewHint", uiLang)}</span>
+            </div>
+            <InvoicePreview data={doc} accent={org.themeAccent} />
+          </div>
+        </div>
       </div>
     </form>
   );

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { requireOrg } from "@/lib/auth";
-import { formatMoney, formatDate, type Lang, type Numerals } from "@/lib/format";
+import { formatMoney, formatDate, type Numerals } from "@/lib/format";
 import { Card, Badge } from "@/components/ui";
 import RecurringList from "@/components/RecurringList";
 import { getUiLang } from "@/lib/ui-lang";
@@ -12,7 +12,6 @@ export default async function RecurringPage() {
   const { org } = await requireOrg();
   const uiLang = await getUiLang();
   const numerals: Numerals = org.numerals === "eastern" ? "eastern" : "western";
-  const langOf = (l: string): Lang => (l === "ar" ? "ar" : "en");
 
   const rules = await prisma.recurringRule.findMany({
     where: { orgId: org.id },
@@ -64,8 +63,8 @@ export default async function RecurringPage() {
                       </span>
                     </p>
                     <p className="text-xs text-neutral-500">
-                      {uiLang === "ar" ? "التالي:" : "Next:"} {formatDate(rule.nextRun, langOf(rule.lang), numerals)} ·{" "}
-                      {formatMoney(amount, rule.currency, langOf(rule.lang), numerals)} 
+                      {uiLang === "ar" ? "التالي:" : "Next:"} {formatDate(rule.nextRun, uiLang, numerals)} ·{" "}
+                      {formatMoney(amount, rule.currency, uiLang, numerals)} 
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
