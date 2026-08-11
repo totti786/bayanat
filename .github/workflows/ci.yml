@@ -64,6 +64,9 @@ jobs:
       - name: Apply migrations
         run: npx prisma migrate deploy
 
+      - name: Build
+        run: npm run build
+
       - name: Start server
         run: npm run start & npx wait-on http://localhost:3000/login
 
