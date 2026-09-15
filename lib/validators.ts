@@ -67,13 +67,19 @@ export const orgSettingsSchema = z.object({
   themeAccent: z.string().nullish().transform((v) => v ?? ""),
 });
 
-export const invoiceItemSchema = z.object({
-  description: z.string().min(1, "Description is required"),
-  descriptionAr: z.string().optional().default(""),
-  quantity: z.coerce.number().positive("Quantity must be positive"),
-  unitPrice: z.coerce.number().nonnegative("Unit price must be >= 0"),
-  taxRate: z.coerce.number().min(0).max(100).optional(),
-});
+export const invoiceItemSchema = z
+  .object({
+    title: z.string().optional().default(""),
+    titleAr: z.string().optional().default(""),
+    description: z.string().optional().default(""),
+    descriptionAr: z.string().optional().default(""),
+    quantity: z.coerce.number().positive("Quantity must be positive"),
+    unitPrice: z.coerce.number().nonnegative("Unit price must be >= 0"),
+    taxRate: z.coerce.number().min(0).max(100).optional(),
+  })
+  .refine((it) => it.title.trim().length > 0 || it.description.trim().length > 0, {
+    message: "Each item needs a title or a description",
+  });
 
 export const invoiceSchema = z.object({
   clientId: z.string().min(1, "Client is required"),

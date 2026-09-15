@@ -84,15 +84,21 @@ function discountToMinor(
 }
 
 function parseInvoiceForm(formData: FormData) {
+  const titles = formData.getAll("itemTitle");
+  const titlesAr = formData.getAll("itemTitleAr");
   const descriptions = formData.getAll("itemDescription");
   const descriptionsAr = formData.getAll("itemDescriptionAr");
   const quantities = formData.getAll("itemQuantity");
   const unitPrices = formData.getAll("itemUnitPrice");
   const taxRates = formData.getAll("itemTaxRate");
+  // Hidden "taxEnabled" input: "on" only when the Apply-tax toggle is on.
+  const taxEnabled = formData.get("taxEnabled") === "on";
 
   const items = descriptions.map((_, i) => ({
-    description: descriptions[i] as string,
-    descriptionAr: descriptionsAr[i] as string,
+    title: (titles[i] as string) || undefined,
+    titleAr: (titlesAr[i] as string) || undefined,
+    description: (descriptions[i] as string) || undefined,
+    descriptionAr: (descriptionsAr[i] as string) || undefined,
     quantity: quantities[i] as string,
     unitPrice: unitPrices[i] as string,
     taxRate: (taxRates[i] as string) || undefined,
@@ -108,9 +114,9 @@ function parseInvoiceForm(formData: FormData) {
     expiryDate: formData.get("expiryDate"),
     discountType: formData.get("discountType"),
     discountValue: formData.get("discountValue"),
-    taxName: formData.get("taxName"),
-    taxRate: (formData.get("taxRate") as string) || undefined,
-    taxInclusive: formData.get("taxInclusive"),
+    taxName: taxEnabled ? (formData.get("taxName") as string) : "",
+    taxRate: taxEnabled ? ((formData.get("taxRate") as string) || undefined) : undefined,
+    taxInclusive: taxEnabled ? formData.get("taxInclusive") : null,
     template: formData.get("template"),
     notes: formData.get("notes"),
     notesAr: formData.get("notesAr"),
@@ -151,14 +157,16 @@ export async function createInvoice(
       status: sendNow ? "sent" : "draft",
       discountType: d.discountType,
       discountValue,
-      taxName: d.taxName || org.defaultTaxName,
-      taxRate: d.taxRate !== undefined ? d.taxRate : org.defaultTaxRate,
+      taxName: d.taxName || null,
+      taxRate: d.taxRate ?? null,
       taxInclusive: d.taxInclusive,
       template: d.template,
       notes: d.notes || null,
       notesAr: d.notesAr || null,
       items: {
         create: d.items.map((it) => ({
+          title: it.title || null,
+          titleAr: it.titleAr || null,
           description: it.description,
           descriptionAr: it.descriptionAr || null,
           quantity: it.quantity,
@@ -227,14 +235,16 @@ export async function updateInvoice(
         expiryDate: d.expiryDate ? new Date(d.expiryDate) : null,
         discountType: d.discountType,
         discountValue,
-        taxName: d.taxName || org.defaultTaxName,
-        taxRate: d.taxRate !== undefined ? d.taxRate : org.defaultTaxRate,
+        taxName: d.taxName || null,
+        taxRate: d.taxRate ?? null,
         taxInclusive: d.taxInclusive,
         template: d.template,
         notes: d.notes || null,
         notesAr: d.notesAr || null,
         items: {
           create: d.items.map((it) => ({
+            title: it.title || null,
+            titleAr: it.titleAr || null,
             description: it.description,
             descriptionAr: it.descriptionAr || null,
             quantity: it.quantity,

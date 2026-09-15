@@ -17,6 +17,8 @@ import {
 const CURRENCIES = ["USD", "EUR", "GBP", "SAR", "AED", "EGP", "KWD", "QAR", "OMR", "BHD", "JOD"];
 
 interface LineState {
+  title: string;
+  titleAr: string;
   description: string;
   descriptionAr: string;
   quantity: string;
@@ -38,7 +40,7 @@ interface InvoiceFormProps {
     language: string;
     paymentTerms: number;
   }[];
-  products?: { id: string; name: string; nameAr: string | null; unitPrice: number; taxRate: number | null }[];
+  products?: { id: string; name: string; nameAr: string | null; description?: string | null; unitPrice: number; taxRate: number | null }[];
   defaultClientId?: string;
   org: {
     defaultCurrency: string;
@@ -77,6 +79,8 @@ interface InvoiceFormProps {
     notes: string | null;
     notesAr: string | null;
     items: {
+      title: string | null;
+      titleAr: string | null;
       description: string;
       descriptionAr: string | null;
       quantity: number;
@@ -142,18 +146,25 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
   });
   const [items, setItems] = useState<LineState[]>(
     invoice?.items.map((it) => ({
+      title: it.title ?? "",
+      titleAr: it.titleAr ?? "",
       description: it.description,
       descriptionAr: it.descriptionAr ?? "",
       quantity: String(it.quantity),
       unitPrice: String(it.unitPrice),
       taxRate: it.taxRate != null ? String(it.taxRate) : "",
-    })) ?? [{ description: "", descriptionAr: "", quantity: "1", unitPrice: "", taxRate: "" }]
+    })) ?? [
+      { title: "", titleAr: "", description: "", descriptionAr: "", quantity: "1", unitPrice: "", taxRate: "" },
+    ]
   );
 
   const ar = lang === "ar";
   const [catalogId, setCatalogId] = useState("");
 
   // Controlled mirrors of fields that drive the live preview.
+  const [taxApplied, setTaxApplied] = useState(
+    invoice ? Boolean(invoice.taxName || invoice.taxRate != null) : Boolean(org.defaultTaxRate || org.defaultTaxName)
+  );
   const [taxName, setTaxName] = useState(invoice?.taxName ?? org.defaultTaxName ?? "");
   const [taxRate, setTaxRate] = useState(
     invoice?.taxRate != null
@@ -203,14 +214,16 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
       issueDate,
       dueDate: kind === "quote" ? null : dueDate,
       expiryDate: kind === "quote" ? expiryDate : null,
-      taxName: taxName || null,
-      taxRate: taxRate ? Number(taxRate) : null,
-      taxInclusive,
+      taxName: taxApplied ? taxName || null : null,
+      taxRate: taxApplied && taxRate ? Number(taxRate) : null,
+      taxInclusive: taxApplied && taxInclusive,
       discountType,
       discountValue: discountValue ? Number(discountValue) : null,
       notes: notes || null,
       notesAr: notesAr || null,
       items: items.map((it) => ({
+        title: it.title || null,
+        titleAr: it.titleAr || null,
         description: it.description,
         descriptionAr: it.descriptionAr || null,
         quantity: Number(it.quantity) || 0,
@@ -228,6 +241,7 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
     dueDate,
     expiryDate,
     selectedClientId,
+    taxApplied,
     taxName,
     taxRate,
     discountType,
@@ -245,8 +259,10 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
     setItems((prev) => [
       ...prev,
       {
-        description: prod.name,
-        descriptionAr: prod.nameAr ?? "",
+        title: prod.name,
+        titleAr: prod.nameAr ?? "",
+        description: prod.description ?? "",
+        descriptionAr: "",
         quantity: "1",
         unitPrice: String(prod.unitPrice),
         taxRate: prod.taxRate != null ? String(prod.taxRate) : "",
@@ -447,32 +463,48 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
               <Input name="expiryDate" type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
             </Field>
           )}
-          <Field label={u("taxName", uiLang)}>
-            <Input name="taxName" value={taxName} onChange={(e) => setTaxName(e.target.value)} placeholder="VAT" />
-          </Field>
-          <Field label={u("taxRate", uiLang)}>
-            <Input
-              name="taxRate"
-              type="number"
-              min={0}
-              max={100}
-              step="0.01"
-              value={taxRate}
-              onChange={(e) => setTaxRate(e.target.value)}
-            />
-          </Field>
-          <div className="flex items-end pb-1">
+          <div className="flex items-end pb-1 sm:col-span-2">
             <label className="flex items-center gap-2 text-sm text-neutral-700">
               <input
                 type="checkbox"
-                name="taxInclusive"
                 className="h-4 w-4 rounded border-neutral-300"
-                checked={taxInclusive}
-                onChange={(e) => setTaxInclusive(e.target.checked)}
+                checked={taxApplied}
+                onChange={(e) => setTaxApplied(e.target.checked)}
               />
-              {u("taxIncluded", uiLang)}
+              {u("taxApply", uiLang)}
             </label>
           </div>
+          {taxApplied && (
+            <>
+              <input type="hidden" name="taxEnabled" value="on" />
+              <Field label={u("taxName", uiLang)}>
+                <Input name="taxName" value={taxName} onChange={(e) => setTaxName(e.target.value)} placeholder="VAT" />
+              </Field>
+              <Field label={u("taxRate", uiLang)}>
+                <Input
+                  name="taxRate"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.01"
+                  value={taxRate}
+                  onChange={(e) => setTaxRate(e.target.value)}
+                />
+              </Field>
+              <div className="flex items-end pb-1 sm:col-span-2">
+                <label className="flex items-center gap-2 text-sm text-neutral-700">
+                  <input
+                    type="checkbox"
+                    name="taxInclusive"
+                    className="h-4 w-4 rounded border-neutral-300"
+                    checked={taxInclusive}
+                    onChange={(e) => setTaxInclusive(e.target.checked)}
+                  />
+                  {u("taxIncluded", uiLang)}
+                </label>
+              </div>
+            </>
+          )}
           <Field label={u("discount", uiLang)}>
             <div className="flex gap-2">
               <Select name="discountType" value={discountType} onChange={(e) => setDiscountType(e.target.value)} className="w-36">
@@ -514,27 +546,45 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
         <div className="space-y-3">
           {items.map((item, i) => (
             <div key={i} className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-              <div className="grid grid-cols-2 gap-3">
-                <Field label={`${u("description", uiLang)} (EN)`}>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Field label={`${u("itemTitle", uiLang)} (EN)`}>
                   <Input
-                    name="itemDescription"
-                    value={item.description}
-                    onChange={(e) => updateItem(i, "description", e.target.value)}
+                    name="itemTitle"
+                    value={item.title}
+                    onChange={(e) => updateItem(i, "title", e.target.value)}
                     placeholder="Web development"
-                    required
                   />
                 </Field>
-                <Field label={`${u("description", uiLang)} (AR)`}>
+                <Field label={`${u("itemTitle", uiLang)} (AR)`}>
                   <Input
-                    name="itemDescriptionAr"
-                    value={item.descriptionAr}
-                    onChange={(e) => updateItem(i, "descriptionAr", e.target.value)}
+                    name="itemTitleAr"
+                    value={item.titleAr}
+                    onChange={(e) => updateItem(i, "titleAr", e.target.value)}
                     placeholder="تطوير موقع"
                     dir="rtl"
                   />
                 </Field>
+                <Field label={`${u("itemDetails", uiLang)} (EN)`}>
+                  <Textarea
+                    name="itemDescription"
+                    value={item.description}
+                    onChange={(e) => updateItem(i, "description", e.target.value)}
+                    placeholder={"Front-end build\nCMS integration\nQA and launch"}
+                    rows={3}
+                  />
+                </Field>
+                <Field label={`${u("itemDetails", uiLang)} (AR)`}>
+                  <Textarea
+                    name="itemDescriptionAr"
+                    value={item.descriptionAr}
+                    onChange={(e) => updateItem(i, "descriptionAr", e.target.value)}
+                    placeholder={"بناء الواجهة\nربط نظام المحتوى\nالاختبار والإطلاق"}
+                    rows={3}
+                    dir="rtl"
+                  />
+                </Field>
               </div>
-              <div className="mt-3 grid grid-cols-4 gap-3">
+              <div className={`mt-3 grid gap-3 ${taxApplied ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2"}`}>
                 <Field label={u("quantity", uiLang)}>
                   <Input
                     name="itemQuantity"
@@ -558,18 +608,20 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
                     required
                   />
                 </Field>
-                <Field label={u("taxRate", uiLang)}>
-                  <Input
-                    name="itemTaxRate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={item.taxRate}
-                    onChange={(e) => updateItem(i, "taxRate", e.target.value)}
-                    placeholder="Default"
-                  />
-                </Field>
+                {taxApplied && (
+                  <Field label={u("taxRate", uiLang)}>
+                    <Input
+                      name="itemTaxRate"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={item.taxRate}
+                      onChange={(e) => updateItem(i, "taxRate", e.target.value)}
+                      placeholder="Default"
+                    />
+                  </Field>
+                )}
                 <div className="flex items-end justify-end">
                   {items.length > 1 && (
                     <Button
@@ -590,7 +642,10 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
           variant="secondary"
           className="mt-4"
           onClick={() =>
-            setItems((prev) => [...prev, { description: "", descriptionAr: "", quantity: "1", unitPrice: "", taxRate: "" }])
+            setItems((prev) => [
+              ...prev,
+              { title: "", titleAr: "", description: "", descriptionAr: "", quantity: "1", unitPrice: "", taxRate: "" },
+            ])
           }
         >
           + {u("addLineItem", uiLang)}

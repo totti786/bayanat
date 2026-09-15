@@ -1,4 +1,4 @@
-import { tr, loc, methodLabel, STATUS_BADGE, type InvoiceDocumentData } from "@/components/invoice/types";
+import { tr, loc, splitLines, methodLabel, STATUS_BADGE, type InvoiceDocumentData } from "@/components/invoice/types";
 import { formatMoney, formatMoneyShort, formatDate, formatPercent } from "@/lib/format";
 import VatBlock from "@/components/invoice/VatBlock";
 import PaymentMethodsBlock from "@/components/invoice/PaymentMethodsBlock";
@@ -9,6 +9,7 @@ export default function ClassicTemplate(data: InvoiceDocumentData) {
   const currency = invoice.currency;
   const badge = STATUS_BADGE[status];
   const taxLabel = invoice.taxName || (invoice.taxRate ? tr("tax", lang) : "");
+  const hasTax = !!invoice.taxRate || lines.some((l) => l.taxRate);
   const isQuote = data.kind === "quote";
   const isCredit = data.kind === "credit_note";
   const secondaryDate = isQuote ? invoice.expiryDate : invoice.dueDate;
@@ -112,19 +113,21 @@ export default function ClassicTemplate(data: InvoiceDocumentData) {
       <table className="mt-8 w-full border-collapse text-[11px]">
         <thead>
           <tr className="border-b-2 border-brand-900">
-            <th className="py-2.5 text-start text-[10px] font-semibold tracking-[0.14em] text-brand-950 uppercase">
+            <th className="w-auto py-2.5 pe-3 text-start text-[10px] font-semibold tracking-[0.14em] whitespace-nowrap text-brand-950 uppercase">
               {tr("description", lang)}
             </th>
-            <th className="py-2.5 text-center text-[10px] font-semibold tracking-[0.14em] text-brand-950 uppercase">
+            <th className="w-[22mm] py-2.5 text-center text-[10px] font-semibold tracking-[0.14em] whitespace-nowrap text-brand-950 uppercase">
               {tr("quantity", lang)}
             </th>
-            <th className="py-2.5 text-end text-[10px] font-semibold tracking-[0.14em] text-brand-950 uppercase">
+            <th className="w-[26mm] py-2.5 text-center text-[10px] font-semibold tracking-[0.14em] whitespace-nowrap text-brand-950 uppercase">
               {tr("unitPrice", lang)}
             </th>
-            <th className="py-2.5 text-end text-[10px] font-semibold tracking-[0.14em] text-brand-950 uppercase">
-              {tr("tax", lang)}
-            </th>
-            <th className="py-2.5 text-end text-[10px] font-semibold tracking-[0.14em] text-brand-950 uppercase">
+            {hasTax && (
+              <th className="w-[26mm] py-2.5 text-center text-[10px] font-semibold tracking-[0.14em] whitespace-nowrap text-brand-950 uppercase">
+                {tr("tax", lang)}
+              </th>
+            )}
+            <th className="w-[30mm] py-2.5 text-end text-[10px] font-semibold tracking-[0.14em] whitespace-nowrap text-brand-950 uppercase">
               {tr("amount", lang)}
             </th>
           </tr>
@@ -132,21 +135,48 @@ export default function ClassicTemplate(data: InvoiceDocumentData) {
         <tbody>
           {lines.map((line, i) => (
             <tr key={i} className="border-b border-neutral-200 align-top">
-              <td className="py-3 pe-3">
-                <p className="font-medium text-brand-950">
-                  {loc(lang, line.description, line.descriptionAr)}
-                </p>
+              <td className="py-3 pe-3 align-top">
+                {loc(lang, line.title, line.titleAr) || loc(lang, line.description, line.descriptionAr) ? (
+                  <p className="font-medium text-brand-950">
+                    {loc(lang, line.title, line.titleAr) || loc(lang, line.description, line.descriptionAr)}
+                  </p>
+                ) : null}
+                {line.title && loc(lang, line.description, line.descriptionAr) && (
+                  <div className="mt-0.5 space-y-0.5">
+                    {splitLines(loc(lang, line.description, line.descriptionAr)).map((l, j) => (
+                      <p key={j} className="text-[10.5px] leading-relaxed text-neutral-600">
+                        {l}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-1 flex flex-wrap gap-x-4 text-[10px] text-neutral-500">
+                  <span className="whitespace-nowrap">
+                    {tr("quantity", lang)}:{" "}
+                    <span className="font-medium text-neutral-700">
+                      {formatMoneyShort(line.quantity, lang, numerals)}
+                    </span>
+                  </span>
+                  <span className="whitespace-nowrap">
+                    {tr("unitPrice", lang)}:{" "}
+                    <span className="font-medium text-neutral-700">
+                      {formatMoney(line.unitPrice, currency, lang, numerals)}
+                    </span>
+                  </span>
+                </div>
               </td>
-              <td className="py-3 text-center text-neutral-600">
+              <td className="py-3 text-center align-top whitespace-nowrap text-neutral-600">
                 {formatMoneyShort(line.quantity, lang, numerals)}
               </td>
-              <td className="py-3 text-end text-neutral-600">
+              <td className="py-3 text-center align-top whitespace-nowrap text-neutral-600">
                 {formatMoney(line.unitPrice, currency, lang, numerals)}
               </td>
-              <td className="py-3 text-end text-neutral-600">
-                {line.taxRate ? formatPercent(line.taxRate, lang, numerals) : "—"}
-              </td>
-              <td className="py-3 text-end font-medium text-brand-950">
+              {hasTax && (
+                <td className="py-3 text-center align-top whitespace-nowrap text-neutral-600">
+                  {line.taxRate ? formatPercent(line.taxRate, lang, numerals) : "—"}
+                </td>
+              )}
+              <td className="py-3 text-end align-top whitespace-nowrap font-medium text-brand-950">
                 {formatMoney(line.total, currency, lang, numerals)}
               </td>
             </tr>
@@ -269,7 +299,7 @@ export default function ClassicTemplate(data: InvoiceDocumentData) {
         <span className="h-px w-10 bg-gold-500" />
       </div>
 
-      <VatBlock data={data} />
+      <VatBlock data={data} show={hasTax} />
     </div>
   );
 }

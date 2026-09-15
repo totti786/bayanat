@@ -49,8 +49,8 @@ try {
   await page.waitForURL(/\/invoices\/new/);
   await page.getByText("Quote", { exact: true }).click();
   await page.getByText("Bilingual", { exact: true }).click();
-  await page.fill('input[name="itemDescription"]', "Consulting");
-  await page.fill('input[name="itemDescriptionAr"]', "استشارات");
+  await page.fill('textarea[name="itemDescription"]', "Consulting");
+  await page.fill('textarea[name="itemDescriptionAr"]', "استشارات");
   await page.fill('input[name="itemQuantity"]', "1");
   await page.fill('input[name="itemUnitPrice"]', "2000");
   await page.getByRole("button", { name: "Create invoice" }).click();

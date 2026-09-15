@@ -99,6 +99,8 @@ export function toDocumentData(
     },
     lines: totals.lines.map((line, i) => ({
       ...line,
+      title: invoice.items[i]?.title,
+      titleAr: invoice.items[i]?.titleAr,
       description: invoice.items[i]?.description ?? "",
       descriptionAr: invoice.items[i]?.descriptionAr,
       taxRate: invoice.items[i]?.taxRate,

@@ -44,7 +44,7 @@ try {
   await page.getByRole("button", { name: "Create client" }).click();
   await page.waitForURL(/\/clients\/[^/]+$/, { timeout: 15000 });
   await page.getByRole("link", { name: "New invoice" }).click();
-  await page.fill('input[name="itemDescription"]', "Services");
+  await page.fill('textarea[name="itemDescription"]', "Services");
   await page.fill('input[name="itemQuantity"]', "1");
   await page.fill('input[name="itemUnitPrice"]', "1000");
   await page.getByRole("button", { name: "Create invoice" }).click();

@@ -6,6 +6,8 @@ import type { EffectiveStatus } from "@/lib/status";
 export type TemplateId = "classic" | "modern" | "minimal" | "bilingual";
 
 export interface InvoiceLine extends LineTotals {
+  title?: string | null;
+  titleAr?: string | null;
   description: string;
   descriptionAr?: string | null;
   taxRate?: number | null;
@@ -69,6 +71,15 @@ export interface InvoiceDocumentData {
 export function loc(lang: Lang, en?: string | null, ar?: string | null): string {
   if (lang === "ar" && ar) return ar;
   return en ?? "";
+}
+
+/** Split a multi-line description into trimmed, non-empty lines. */
+export function splitLines(value: string | null | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
 }
 
 export const methodLabels: Record<string, { en: string; ar: string }> = {

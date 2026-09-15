@@ -1,4 +1,4 @@
-import { tr, loc, methodLabel, STATUS_BADGE, type InvoiceDocumentData } from "@/components/invoice/types";
+import { tr, loc, splitLines, methodLabel, STATUS_BADGE, type InvoiceDocumentData } from "@/components/invoice/types";
 import { formatMoney, formatMoneyShort, formatDate, formatPercent } from "@/lib/format";
 import VatBlock from "@/components/invoice/VatBlock";
 import PaymentMethodsBlock from "@/components/invoice/PaymentMethodsBlock";
@@ -9,6 +9,7 @@ export default function ModernTemplate(data: InvoiceDocumentData) {
   const currency = invoice.currency;
   const badge = STATUS_BADGE[status];
   const taxLabel = invoice.taxName || (invoice.taxRate ? tr("tax", lang) : "");
+  const hasTax = !!invoice.taxRate || lines.some((l) => l.taxRate);
   const unpaid = status === "sent" || status === "partially_paid" || status === "overdue";
   const isQuote = data.kind === "quote";
   const isCredit = data.kind === "credit_note";
@@ -153,9 +154,11 @@ export default function ModernTemplate(data: InvoiceDocumentData) {
             <th className="py-2.5 text-end text-[10px] font-semibold tracking-[0.14em] text-brand-800 uppercase">
               {tr("unitPrice", lang)}
             </th>
-            <th className="py-2.5 text-end text-[10px] font-semibold tracking-[0.14em] text-brand-800 uppercase">
-              {tr("tax", lang)}
-            </th>
+            {hasTax && (
+              <th className="py-2.5 text-end text-[10px] font-semibold tracking-[0.14em] text-brand-800 uppercase">
+                {tr("tax", lang)}
+              </th>
+            )}
             <th className="rounded-e-lg py-2.5 pe-3 text-end text-[10px] font-semibold tracking-[0.14em] text-brand-800 uppercase">
               {tr("amount", lang)}
             </th>
@@ -166,8 +169,17 @@ export default function ModernTemplate(data: InvoiceDocumentData) {
             <tr key={i} className="border-b border-neutral-100 align-top">
               <td className="py-3.5 ps-3 pe-3">
                 <p className="font-medium text-brand-950">
-                  {loc(lang, line.description, line.descriptionAr)}
+                  {loc(lang, line.title, line.titleAr) || loc(lang, line.description, line.descriptionAr)}
                 </p>
+                {line.title && loc(lang, line.description, line.descriptionAr) && (
+                  <div className="mt-0.5 space-y-0.5">
+                    {splitLines(loc(lang, line.description, line.descriptionAr)).map((l, j) => (
+                      <p key={j} className="text-[10.5px] leading-relaxed text-neutral-600">
+                        {l}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </td>
               <td className="py-3.5 text-center text-neutral-600">
                 {formatMoneyShort(line.quantity, lang, numerals)}
@@ -175,9 +187,11 @@ export default function ModernTemplate(data: InvoiceDocumentData) {
               <td className="py-3.5 text-end text-neutral-600">
                 {formatMoney(line.unitPrice, currency, lang, numerals)}
               </td>
-              <td className="py-3.5 text-end text-neutral-600">
-                {line.taxRate ? formatPercent(line.taxRate, lang, numerals) : "—"}
-              </td>
+              {hasTax && (
+                <td className="py-3.5 text-end text-neutral-600">
+                  {line.taxRate ? formatPercent(line.taxRate, lang, numerals) : "—"}
+                </td>
+              )}
               <td className="py-3.5 pe-3 text-end font-semibold text-brand-950">
                 {formatMoney(line.total, currency, lang, numerals)}
               </td>
@@ -280,7 +294,7 @@ export default function ModernTemplate(data: InvoiceDocumentData) {
 
       <p className="mt-14 text-center text-[10px] text-neutral-400">{tr("thankYou", lang)}</p>
 
-      <VatBlock data={data} />
+      <VatBlock data={data} show={hasTax} />
     </div>
   );
 }

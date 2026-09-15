@@ -55,11 +55,12 @@ try {
   await page.selectOption('select[name="lang"]', "ar");
   await page.fill('input[name="issueDate"]', "2026-08-07");
   await page.fill('input[name="dueDate"]', "2026-09-07");
+  await page.click('label:has-text("Apply tax to this invoice")');
   await page.fill('input[name="taxName"]', "VAT");
   await page.fill('input[name="taxRate"]', "5");
   await page.click('label:has-text("Tax included in prices")');
-  await page.fill('input[name="itemDescription"]', "Website design");
-  await page.fill('input[name="itemDescriptionAr"]', "تصميم موقع");
+  await page.fill('textarea[name="itemDescription"]', "Website design");
+  await page.fill('textarea[name="itemDescriptionAr"]', "تصميم موقع");
   await page.fill('input[name="itemQuantity"]', "2");
   await page.fill('input[name="itemUnitPrice"]', "1000");
   await page.fill('input[name="itemTaxRate"]', "");
@@ -109,7 +110,7 @@ try {
   // 8. Invoices list shows the new invoice
   await page.goto(`${BASE}/invoices`);
   await page.waitForLoadState("load");
-  check("invoice in list", await page.getByText("INV-0001").first().isVisible());
+  check("invoice in list", await waitText(page, /INV-0001/));
 } catch (e) {
   failures++;
   console.log("EXCEPTION:", e.message);

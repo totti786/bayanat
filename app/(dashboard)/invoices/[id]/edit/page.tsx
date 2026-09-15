@@ -87,6 +87,8 @@ export default async function EditInvoicePage({
             notes: invoice.notes,
             notesAr: invoice.notesAr,
             items: invoice.items.map((it) => ({
+              title: it.title,
+              titleAr: it.titleAr,
               description: it.description,
               descriptionAr: it.descriptionAr,
               quantity: it.quantity,

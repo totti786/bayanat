@@ -143,6 +143,8 @@ model LineItem {
   id            String   @id @default(cuid())
   invoiceId     String
   invoice       Invoice  @relation(fields: [invoiceId], references: [id])
+  title         String?
+  titleAr       String?
   description   String
   descriptionAr String?
   quantity      Float

@@ -1,6 +1,7 @@
 import { tr, type InvoiceDocumentData } from "@/components/invoice/types";
 
-export default function VatBlock({ data }: { data: InvoiceDocumentData }) {
+export default function VatBlock({ data, show = true }: { data: InvoiceDocumentData; show?: boolean }) {
+  if (!show) return null;
   if (!data.qr || !data.qrPayload) return null;
   const { lang } = data;
 

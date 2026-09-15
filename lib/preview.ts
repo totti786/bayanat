@@ -34,6 +34,8 @@ export interface PreviewClient {
 }
 
 export interface PreviewLineInput {
+  title?: string | null;
+  titleAr?: string | null;
   description: string;
   descriptionAr?: string | null;
   quantity: number;
@@ -111,6 +113,8 @@ export function toDraftDocument(input: DraftDocumentInput): InvoiceDocumentData 
 
   const docLines: InvoiceLine[] = totals.lines.map((line, i) => ({
     ...line,
+    title: input.items[i]?.title ?? null,
+    titleAr: input.items[i]?.titleAr ?? null,
     description: input.items[i]?.description ?? "",
     descriptionAr: input.items[i]?.descriptionAr ?? null,
     taxRate: input.items[i]?.taxRate ?? null,

@@ -1,4 +1,4 @@
-import { tr, methodLabel, STATUS_BADGE, type InvoiceDocumentData } from "@/components/invoice/types";
+import { tr, splitLines, methodLabel, STATUS_BADGE, type InvoiceDocumentData } from "@/components/invoice/types";
 import { formatMoney, formatMoneyShort, formatDate } from "@/lib/format";
 import VatBlock from "@/components/invoice/VatBlock";
 import PaymentMethodsBlock from "@/components/invoice/PaymentMethodsBlock";
@@ -12,6 +12,7 @@ export default function BilingualTemplate(data: InvoiceDocumentData) {
   const { numerals, org, client, invoice, lines, totals, payments, status, showPayments } = data;
   const currency = invoice.currency;
   const badge = STATUS_BADGE[status];
+  const hasTax = !!invoice.taxRate || lines.some((l) => l.taxRate);
   const isQuote = data.kind === "quote";
   const isCredit = data.kind === "credit_note";
   const secondaryDate = isQuote ? invoice.expiryDate : invoice.dueDate;
@@ -146,8 +147,27 @@ export default function BilingualTemplate(data: InvoiceDocumentData) {
           {lines.map((line, i) => (
             <tr key={i} className="border-b border-neutral-200 align-top">
               <td className="py-3 pe-3">
-                <p className="font-medium text-brand-950">{line.description}</p>
-                {line.descriptionAr && (
+                <p className="font-medium text-brand-950">
+                  {line.title || line.description}
+                </p>
+                {line.title && line.description && (
+                  <div className="mt-0.5 space-y-0.5">
+                    {splitLines(line.description).map((l, j) => (
+                      <p key={j} className="text-[10.5px] leading-relaxed text-neutral-600">{l}</p>
+                    ))}
+                  </div>
+                )}
+                {line.titleAr && (
+                  <p className="mt-0.5 font-medium text-brand-950" dir="rtl">{line.titleAr}</p>
+                )}
+                {line.titleAr && line.descriptionAr && (
+                  <div className="space-y-0.5" dir="rtl">
+                    {splitLines(line.descriptionAr).map((l, j) => (
+                      <p key={j} className="text-[10.5px] leading-relaxed text-neutral-600">{l}</p>
+                    ))}
+                  </div>
+                )}
+                {!line.titleAr && line.descriptionAr && (
                   <p className="text-neutral-600" dir="rtl">{line.descriptionAr}</p>
                 )}
               </td>
@@ -252,7 +272,7 @@ export default function BilingualTemplate(data: InvoiceDocumentData) {
         {tr("thankYou", "en")} · <span dir="rtl">{tr("thankYou", "ar")}</span>
       </p>
 
-      <VatBlock data={data} />
+      <VatBlock data={data} show={hasTax} />
     </div>
   );
 }
