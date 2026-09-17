@@ -16,7 +16,7 @@ export default function MinimalTemplate(data: InvoiceDocumentData) {
   const secondaryLabel = isQuote ? "expiryDate" : "dueDate";
 
   return (
-    <div className="px-[18mm] py-[18mm]">
+    <div className="flex min-h-[297mm] flex-col px-[18mm] py-[18mm]">
       {/* Header */}
       <div className="flex items-start justify-between gap-8">
         <div>
@@ -261,11 +261,13 @@ export default function MinimalTemplate(data: InvoiceDocumentData) {
 
       <PaymentMethodsBlock data={data} />
 
-      <p className="mt-16 text-center text-[10px] tracking-wide text-neutral-400">
-        {tr("thankYou", lang)}
-      </p>
+      <div className="mt-auto pt-10">
+        <VatBlock data={data} show={hasTax} />
 
-      <VatBlock data={data} show={hasTax} />
+        <p className="mt-8 border-t border-neutral-200 pt-5 text-center text-[10px] tracking-[0.18em] text-neutral-400 uppercase">
+          {tr("thankYou", lang)}
+        </p>
+      </div>
     </div>
   );
 }

@@ -67,7 +67,7 @@ export async function generateDueInvoices(now = new Date()): Promise<number> {
       if (!org) return;
 
       const seq = org.nextNumber;
-      const number = `${org.prefix}-${String(seq).padStart(4, "0")}`;
+      const number = `${org.prefix}-${String(seq).padStart(3, "0")}`;
       await tx.organization.update({
         where: { id: rule.orgId },
         data: { nextNumber: seq + 1 },

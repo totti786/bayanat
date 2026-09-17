@@ -282,7 +282,7 @@ async function finalizeInvoiceNumber(invoiceId: string, orgId: string) {
     if (!org) return;
 
     const seq = org.nextNumber;
-    const number = `${org.prefix}-${String(seq).padStart(4, "0")}`;
+    const number = `${org.prefix}-${String(seq).padStart(3, "0")}`;
 
     await tx.organization.update({
       where: { id: orgId },
@@ -385,7 +385,7 @@ export async function issueCreditNote(
     const orgRow = await tx.organization.findUnique({ where: { id: org.id } });
     if (!orgRow) throw new Error("Organization not found");
     const seq = orgRow.nextNumber;
-    const number = `${orgRow.prefix}-${String(seq).padStart(4, "0")}`;
+    const number = `${orgRow.prefix}-${String(seq).padStart(3, "0")}`;
     await tx.organization.update({ where: { id: org.id }, data: { nextNumber: seq + 1 } });
 
     return tx.invoice.create({
