@@ -4,6 +4,7 @@ import { requireOrg } from "@/lib/auth";
 import { Card } from "@/components/ui";
 import InvoiceForm from "@/components/InvoiceForm";
 import { getUiLang } from "@/lib/ui-lang";
+import { fromMinor } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
 
@@ -82,7 +83,10 @@ export default async function EditInvoicePage({
             dueDate: invoice.dueDate ? invoice.dueDate.toISOString().slice(0, 10) : null,
             expiryDate: invoice.expiryDate ? invoice.expiryDate.toISOString().slice(0, 10) : null,
             discountType: invoice.discountType,
-            discountValue: invoice.discountValue,
+            discountValue:
+              invoice.discountType === "fixed" && invoice.discountValue != null
+                ? fromMinor(invoice.discountValue, invoice.currency)
+                : invoice.discountValue,
             taxName: invoice.taxName,
             taxRate: invoice.taxRate,
             taxInclusive: invoice.taxInclusive,
@@ -95,7 +99,7 @@ export default async function EditInvoicePage({
               description: it.description,
               descriptionAr: it.descriptionAr,
               quantity: it.quantity,
-              unitPrice: it.unitPrice,
+              unitPrice: fromMinor(it.unitPrice, invoice.currency),
               taxRate: it.taxRate,
             })),
           }}
