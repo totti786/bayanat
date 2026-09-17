@@ -119,6 +119,7 @@ const dict: Record<string, Entry> = {
   nameAr: { en: "Name in Arabic", ar: "الاسم بالعربية" },
   email: { en: "Email", ar: "البريد الإلكتروني" },
   phone: { en: "Phone", ar: "الهاتف" },
+  website: { en: "Website", ar: "الموقع الإلكتروني" },
   addressEn: { en: "Address (primary)", ar: "العنوان (الأساسي)" },
   addressAr: { en: "Address in Arabic", ar: "العنوان بالعربية" },
   taxId: { en: "Tax / VAT ID", ar: "الرقم الضريبي" },

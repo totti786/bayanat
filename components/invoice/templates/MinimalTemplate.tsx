@@ -1,4 +1,4 @@
-import { tr, loc, splitLines, methodLabel, STATUS_BADGE, type InvoiceDocumentData } from "@/components/invoice/types";
+import { tr, loc, splitLines, methodLabel, STATUS_BADGE, orgContact, type InvoiceDocumentData } from "@/components/invoice/types";
 import { formatMoney, formatMoneyShort, formatDate, formatPercent } from "@/lib/format";
 import VatBlock from "@/components/invoice/VatBlock";
 import PaymentMethodsBlock from "@/components/invoice/PaymentMethodsBlock";
@@ -28,6 +28,7 @@ export default function MinimalTemplate(data: InvoiceDocumentData) {
               <p className="whitespace-pre-line">{loc(lang, org.address, org.addressAr)}</p>
             )}
             {org.vatId && <p className="mt-0.5">{tr("taxId", lang)}: {org.vatId}</p>}
+            {orgContact(org) && <p className="mt-0.5" dir="ltr">{orgContact(org)}</p>}
           </div>
         </div>
         <div className="text-end">

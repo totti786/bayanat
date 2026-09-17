@@ -1,4 +1,4 @@
-import { tr, loc, splitLines, methodLabel, STATUS_BADGE, type InvoiceDocumentData } from "@/components/invoice/types";
+import { tr, loc, splitLines, methodLabel, STATUS_BADGE, orgContact, type InvoiceDocumentData } from "@/components/invoice/types";
 import { formatMoney, formatMoneyShort, formatDate, formatPercent } from "@/lib/format";
 import VatBlock from "@/components/invoice/VatBlock";
 import PaymentMethodsBlock from "@/components/invoice/PaymentMethodsBlock";
@@ -35,6 +35,11 @@ export default function ClassicTemplate(data: InvoiceDocumentData) {
             {loc(lang, org.address, org.addressAr) && (
               <p className="mt-1 max-w-[80mm] text-[11px] leading-relaxed text-neutral-500 whitespace-pre-line">
                 {loc(lang, org.address, org.addressAr)}
+              </p>
+            )}
+            {orgContact(org) && (
+              <p className="mt-1 text-[11px] text-neutral-500" dir="ltr">
+                {orgContact(org)}
               </p>
             )}
             {org.vatId && (

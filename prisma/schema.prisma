@@ -60,6 +60,9 @@ model Organization {
   nameAr          String?
   address         String?
   addressAr       String?
+  email           String?
+  phone           String?
+  website         String?
   vatId           String?
   bankDetails     String?
   logoUrl         String?

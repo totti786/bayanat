@@ -30,6 +30,9 @@ export interface InvoiceDocumentData {
     nameAr?: string | null;
     address?: string | null;
     addressAr?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    website?: string | null;
     vatId?: string | null;
     bankDetails?: string | null;
     logoUrl?: string | null;
@@ -80,6 +83,18 @@ export function splitLines(value: string | null | undefined): string[] {
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter(Boolean);
+}
+
+/** Issuer contact line for the header block: email · phone · website, blanks dropped. */
+export function orgContact(org: {
+  email?: string | null;
+  phone?: string | null;
+  website?: string | null;
+}): string {
+  return [org.email, org.phone, org.website]
+    .map((v) => (v ?? "").trim())
+    .filter(Boolean)
+    .join(" · ");
 }
 
 export const methodLabels: Record<string, { en: string; ar: string }> = {

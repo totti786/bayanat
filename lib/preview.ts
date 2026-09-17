@@ -14,6 +14,9 @@ export interface PreviewOrg {
   nameAr?: string | null;
   address?: string | null;
   addressAr?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  website?: string | null;
   vatId?: string | null;
   bankDetails?: string | null;
   logoUrl?: string | null;
@@ -135,6 +138,9 @@ export function toDraftDocument(input: DraftDocumentInput): InvoiceDocumentData 
       nameAr: org.nameAr ?? null,
       address: org.address ?? null,
       addressAr: org.addressAr ?? null,
+      email: org.email ?? null,
+      phone: org.phone ?? null,
+      website: org.website ?? null,
       vatId: org.vatId ?? null,
       bankDetails: org.bankDetails ?? null,
       logoUrl: org.logoUrl ?? null,

@@ -1,4 +1,4 @@
-import { tr, splitLines, methodLabel, STATUS_BADGE, type InvoiceDocumentData } from "@/components/invoice/types";
+import { tr, splitLines, methodLabel, STATUS_BADGE, orgContact, type InvoiceDocumentData } from "@/components/invoice/types";
 import { formatMoney, formatMoneyShort, formatDate } from "@/lib/format";
 import VatBlock from "@/components/invoice/VatBlock";
 import PaymentMethodsBlock from "@/components/invoice/PaymentMethodsBlock";
@@ -50,6 +50,11 @@ export default function BilingualTemplate(data: InvoiceDocumentData) {
             <p className="mt-1 max-w-[75mm] text-[11px] leading-relaxed text-neutral-500 whitespace-pre-line">
               {org.address ?? org.addressAr ?? ""}
             </p>
+            {orgContact(org) && (
+              <p className="mt-1 text-[11px] text-neutral-500" dir="ltr">
+                {orgContact(org)}
+              </p>
+            )}
             {org.vatId && (
               <p className="mt-1 text-[11px] text-neutral-500">
                 {tr("taxId", "en")} / {tr("taxId", "ar")}: {org.vatId}

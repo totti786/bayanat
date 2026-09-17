@@ -31,6 +31,9 @@ export default function SettingsForm({
     nameAr: string | null;
     address: string | null;
     addressAr: string | null;
+    email: string | null;
+    phone: string | null;
+    website: string | null;
     vatId: string | null;
     bankDetails: string | null;
     logoUrl: string | null;
@@ -153,6 +156,15 @@ export default function SettingsForm({
           </Field>
           <Field label={u("addressAr", lang)}>
             <Textarea name="addressAr" defaultValue={org.addressAr ?? ""} rows={2} dir="rtl" />
+          </Field>
+          <Field label={u("email", lang)} hint={lang === "ar" ? "يظهر على كل فاتورة" : "Shown on every invoice"}>
+            <Input name="email" type="email" defaultValue={org.email ?? ""} placeholder="you@example.com" />
+          </Field>
+          <Field label={u("phone", lang)}>
+            <Input name="phone" defaultValue={org.phone ?? ""} placeholder="+963 9XX XXX XXX" />
+          </Field>
+          <Field label={u("website", lang)}>
+            <Input name="website" defaultValue={org.website ?? ""} placeholder="example.com" />
           </Field>
           <Field label={u("taxId", lang)}>
             <Input name="vatId" defaultValue={org.vatId ?? ""} placeholder="Shown on every invoice" />

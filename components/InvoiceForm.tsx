@@ -53,6 +53,9 @@ interface InvoiceFormProps {
     nameAr?: string | null;
     address?: string | null;
     addressAr?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    website?: string | null;
     vatId?: string | null;
     bankDetails?: string | null;
     logoUrl?: string | null;
@@ -191,6 +194,9 @@ export default function InvoiceForm({ clients, org, invoice, defaultClientId, ui
         nameAr: org.nameAr,
         address: org.address,
         addressAr: org.addressAr,
+        email: org.email,
+        phone: org.phone,
+        website: org.website,
         vatId: org.vatId,
         bankDetails: org.bankDetails,
         logoUrl: org.logoUrl,
