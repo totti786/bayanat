@@ -105,18 +105,18 @@ export default function MinimalTemplate(data: InvoiceDocumentData) {
             <th className="py-2.5 text-start text-[9px] font-semibold tracking-[0.18em] text-neutral-400 uppercase">
               {tr("description", lang)}
             </th>
-            <th className="py-2.5 text-center text-[9px] font-semibold tracking-[0.18em] text-neutral-400 uppercase">
+            <th className="py-2.5 w-[16mm] whitespace-nowrap text-center text-[9px] font-semibold tracking-[0.18em] text-neutral-400 uppercase">
               {tr("quantity", lang)}
             </th>
-            <th className="py-2.5 text-end text-[9px] font-semibold tracking-[0.18em] text-neutral-400 uppercase">
+            <th className="py-2.5 w-[30mm] whitespace-nowrap text-end text-[9px] font-semibold tracking-[0.18em] text-neutral-400 uppercase">
               {tr("unitPrice", lang)}
             </th>
             {hasTax && (
-              <th className="py-2.5 text-end text-[9px] font-semibold tracking-[0.18em] text-neutral-400 uppercase">
+              <th className="py-2.5 w-[16mm] ps-6 whitespace-nowrap text-end text-[9px] font-semibold tracking-[0.18em] text-neutral-400 uppercase">
                 {tr("tax", lang)}
               </th>
             )}
-            <th className="py-2.5 text-end text-[9px] font-semibold tracking-[0.18em] text-neutral-400 uppercase">
+            <th className="py-2.5 w-[32mm] ps-8 whitespace-nowrap text-end text-[9px] font-semibold tracking-[0.18em] text-neutral-400 uppercase">
               {tr("amount", lang)}
             </th>
           </tr>
@@ -138,18 +138,18 @@ export default function MinimalTemplate(data: InvoiceDocumentData) {
                   </div>
                 )}
               </td>
-              <td className="py-3.5 text-center text-neutral-500">
+              <td className="py-3.5 w-[16mm] whitespace-nowrap text-center text-neutral-500">
                 {formatMoneyShort(line.quantity, lang, numerals)}
               </td>
-              <td className="py-3.5 text-end text-neutral-500">
+              <td className="py-3.5 w-[30mm] whitespace-nowrap text-end text-neutral-500">
                 {formatMoney(line.unitPrice, currency, lang, numerals)}
               </td>
               {hasTax && (
-                <td className="py-3.5 text-end text-neutral-500">
+                <td className="py-3.5 w-[16mm] ps-6 whitespace-nowrap text-end text-neutral-500">
                   {line.taxRate ? formatPercent(line.taxRate, lang, numerals) : "—"}
                 </td>
               )}
-              <td className="py-3.5 text-end font-medium text-brand-950">
+              <td className="py-3.5 w-[32mm] ps-8 whitespace-nowrap text-end font-medium text-brand-950">
                 {formatMoney(line.total, currency, lang, numerals)}
               </td>
             </tr>
